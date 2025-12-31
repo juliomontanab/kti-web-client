@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generador de Iconos PWA</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f0f0f0; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #c84b31; }
+        canvas { border: 2px solid #ddd; margin: 20px 0; }
+        button { background: #c84b31; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 5px; }
+        button:hover { background: #a03a25; }
+        .info { background: #e8f4f8; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Generador de Iconos Trading PWA</h1>
+        <div class="info">
+            Este generador crea automáticamente los iconos necesarios para tu PWA.
+            Los iconos incluyen el símbolo de gráfico y el nombre de la app.
+        </div>
+        
+        <h3>Icon 192x192:</h3>
+        <canvas id="canvas192" width="192" height="192"></canvas>
+        <button onclick="downloadIcon('canvas192', 'icon-192.png')">Descargar 192x192</button>
+        
+        <h3>Icon 512x512:</h3>
+        <canvas id="canvas512" width="512" height="512"></canvas>
+        <button onclick="downloadIcon('canvas512', 'icon-512.png')">Descargar 512x512</button>
+        
+        <div class="info">
+            Haz clic en los botones de descarga para guardar los iconos, 
+            luego colócalos en la raíz de tu proyecto PWA.
+        </div>
+    </div>
+
+    <script>
+        function drawIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#c84b31');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            ctx.fillStyle = '#ecdbba';
+            ctx.font = `bold ${size * 0.5}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('📊', size / 2, size / 2.3);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${size * 0.12}px Arial`;
+            ctx.fillText('TRADING', size / 2, size * 0.75);
+        }
+        
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        drawIcon('canvas192', 192);
+        drawIcon('canvas512', 512);
+    </script>
+</body>
+</html>
