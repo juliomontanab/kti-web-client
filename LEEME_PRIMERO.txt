@@ -1,0 +1,112 @@
+# 🚀 INICIO RÁPIDO - Trading PWA
+
+## 📦 Archivos incluidos
+
+Este ZIP contiene todo lo necesario para desplegar tu PWA de análisis técnico.
+
+## ⚡ Comenzar en 3 pasos
+
+### 1. Extraer y configurar
+```bash
+unzip trading-pwa.zip
+cd trading-pwa
+npm install
+```
+
+### 2. Configurar API
+Edita `public/app.js` línea 1:
+```javascript
+const API_BASE_URL = 'https://tu-api.com/api';
+```
+
+### 3. Ejecutar localmente
+```bash
+npm run dev
+```
+Abre: http://localhost:3000
+
+## 🌐 Deploy en AWS Amplify
+
+### Opción 1: GitHub + Amplify (Recomendado)
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/tu-usuario/trading-pwa.git
+git push -u origin main
+```
+Luego en [AWS Amplify Console](https://console.aws.amazon.com/amplify/):
+1. New app → Host web app
+2. Conectar GitHub
+3. Seleccionar repo
+4. Deploy automático
+
+### Opción 2: Deploy directo
+```bash
+npm install -g @aws-amplify/cli
+amplify init
+amplify add hosting
+amplify publish
+```
+
+## 📁 Estructura del proyecto
+
+```
+trading-pwa/
+├── public/              # Archivos estáticos de la PWA
+│   ├── index.html      # HTML principal
+│   ├── app.js          # Lógica de la aplicación
+│   ├── manifest.json   # Configuración PWA
+│   ├── sw.js           # Service Worker
+│   └── create-icons.html  # Generador de iconos
+├── server.js           # Servidor Express (desarrollo)
+├── package.json        # Dependencias Node.js
+├── amplify.yml         # Configuración AWS Amplify
+├── README.md           # Documentación completa
+├── QUICKSTART.md       # Guía rápida
+└── AMPLIFY_DEPLOY.md   # Guía de deploy en Amplify
+```
+
+## 🔑 Endpoints de API necesarios
+
+Tu API debe proveer:
+- `GET /api/symbols` → Lista de símbolos
+- `GET /api/analysis?id={_id}` → Detalle del análisis
+
+Ver formato en README.md
+
+## 🎨 Generar iconos
+
+1. Abre `public/create-icons.html` en el navegador
+2. Descarga los iconos (192x192 y 512x512)
+3. Guárdalos en `public/` como:
+   - `icon-192.png`
+   - `icon-512.png`
+
+## ✅ Checklist pre-deploy
+
+- [ ] npm install ejecutado
+- [ ] API_BASE_URL configurada
+- [ ] Iconos generados
+- [ ] Probado localmente
+- [ ] Código en GitHub
+- [ ] Deploy en Amplify
+
+## 📚 Documentación
+
+- **README.md**: Documentación completa
+- **QUICKSTART.md**: Guía de inicio rápido
+- **AMPLIFY_DEPLOY.md**: Guía detallada de AWS Amplify
+
+## 🆘 Soporte
+
+¿Problemas? Revisa:
+1. README.md → Solución de Problemas
+2. Consola del navegador (F12)
+3. Logs de Amplify
+
+---
+
+**Versión:** 1.0
+**Autor:** Julio Montana
+**Stack:** Node.js + Express + PWA + AWS Amplify
