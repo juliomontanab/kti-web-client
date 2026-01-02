@@ -185,7 +185,7 @@ function renderBestOpportunities(opportunities) {
     container.innerHTML = sortedOpportunities.map(opp => {
         const directionClass = opp.analysis.mainScenario.direction === 'LONG' ? 'badge-success' : 'badge-danger';
         const biasClass = opp.analysis.bias === 'Alcista' ? 'badge-success' :
-                         opp.analysis.bias === 'Bajista' ? 'badge-danger' : 'badge-warning';
+            opp.analysis.bias === 'Bajista' ? 'badge-danger' : 'badge-warning';
 
         return `
             <div class="opportunity-card" onclick="showDetail('${opp._id}')">
@@ -361,14 +361,22 @@ function renderDetail(data) {
                     <span class="metric-label">EMA 21</span>
                     <span class="metric-value">${formatNumber(data.trend.emas.ema21.value, 3)} (${formatPercent(data.trend.emas.ema21.distance)})</span>
                 </div>
-                <div class="metric">
-                    <span class="metric-label">EMA 30</span>
-                    <span class="metric-value">${formatNumber(data.trend.emas.ema30.value, 3)} (${formatPercent(data.trend.emas.ema30.distance)})</span>
-                </div>
+                ${data.trend.emas.ema30 ? `
+                    <div class="metric">
+                        <span class="metric-label">EMA 30</span>
+                        <span class="metric-value">${formatNumber(data.trend.emas.ema30.value, 3)} (${formatPercent(data.trend.emas.ema30.distance)})</span>
+                    </div>
+                ` : ''}
                 <div class="metric">
                     <span class="metric-label">EMA 50</span>
                     <span class="metric-value">${formatNumber(data.trend.emas.ema50.value, 3)} (${formatPercent(data.trend.emas.ema50.distance)})</span>
                 </div>
+                ${data.trend.emas.ema200 ? `
+                    <div class="metric">
+                        <span class="metric-label">EMA 200</span>
+                        <span class="metric-value">${formatNumber(data.trend.emas.ema200.value, 3)} (${formatPercent(data.trend.emas.ema200.distance)})</span>
+                    </div>
+                ` : ''}
                 <div class="metric">
                     <span class="metric-label">Alineación</span>
                     <span class="badge ${getBadgeClass(data.trend.emas.alignment)}">${data.trend.emas.alignment}</span>
