@@ -80,7 +80,6 @@ function renderSymbolTypes(types) {
                 <div class="type-name">Mejores Oportunidades</div>
                 <div class="type-description">Análisis con mayor confianza</div>
             </div>
-            <div class="type-arrow">→</div>
         </div>
     `;
 
@@ -94,7 +93,6 @@ function renderSymbolTypes(types) {
                 <div class="type-name">${type.name}</div>
                 <div class="type-description">${type.description}</div>
             </div>
-            <div class="type-arrow">→</div>
         </div>
     `).join('');
 
@@ -129,7 +127,6 @@ function renderSymbols(symbols, typeName, typeColor, typeIcon) {
             <div class="symbol-info">${symbol.fullName}</div>
             <div class="symbol-footer">
                 <span class="symbol-trading-code">${symbol.tradingCode}</span>
-                <span class="symbol-arrow">→</span>
             </div>
         </div>
     `).join('');
@@ -159,6 +156,7 @@ function renderResults(results, symbolName, symbolColor, symbolIcon) {
             </div>
             <div class="result-name">${result.instrument.name}</div>
             <div class="result-type">${result.instrument.assetType}</div>
+            <div class="result-date">📅 ${formatDate(result)}</div>
         </div>
     `).join('');
 }
@@ -202,12 +200,49 @@ function renderBestOpportunities(opportunities) {
                     <span class="result-timeframe">${opp.instrument.timeframe}</span>
                 </div>
                 <div class="opportunity-type">${opp.instrument.assetType}</div>
+                <div class="opportunity-date">📅 ${formatDate(opp)}</div>
             </div>
         `;
     }).join('');
 }
 
 // ========== FORMATTING FUNCTIONS ==========
+
+function formatDate(data) {
+    // Priorizar data.date, sino usar data._processing.processedAt
+    let dateValue = data.date;
+
+    // Si no existe data.date, intentar con _processing.processedAt
+    if (!dateValue && data._processing && data._processing.processedAt) {
+        dateValue = data._processing.processedAt;
+
+        // Si es un objeto $date, extraer el valor
+        if (typeof dateValue === 'object' && dateValue.$date) {
+            dateValue = dateValue.$date;
+        }
+    }
+
+    if (!dateValue) return 'N/A';
+
+    // Intentar parsear con diferentes formatos
+    let parsedDate;
+
+    // Si es un string con formato "YYYY-MM-DD HH:mm"
+    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}\s\d{1,2}:\d{2}$/)) {
+        parsedDate = moment(dateValue, 'YYYY-MM-DD HH:mm');
+    } else {
+        // Intentar parsear automáticamente (timestamps ISO, etc.)
+        parsedDate = moment(dateValue);
+    }
+
+    // Verificar si la fecha es válida
+    if (!parsedDate.isValid()) {
+        console.log('Fecha inválida:', dateValue);
+        return 'N/A';
+    }
+
+    return parsedDate.format('DD/MM/YYYY HH:mm');
+}
 
 function formatNumber(num, decimals = 2) {
     if (num === null || num === undefined) return 'N/A';
@@ -332,6 +367,34 @@ function renderDetail(data) {
 
         <div class="grid">
             <div class="section">
+                <h2>🔺 Resistencias</h2>
+                ${data.levels.resistances.map(r => `
+                    <div class="level-item">
+                        <div>
+                            <strong>${formatNumber(r.level, 3)}</strong>
+                            <div class="level-type">${r.type}</div>
+                        </div>
+                        <span class="badge ${getBadgeClass(r.strength, 'strength')}">${r.strength}</span>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="section">
+                <h2>🔻 Soportes</h2>
+                ${data.levels.supports.map(s => `
+                    <div class="level-item">
+                        <div>
+                            <strong>${formatNumber(s.level, 3)}</strong>
+                            <div class="level-type">${s.type}</div>
+                        </div>
+                        <span class="badge ${getBadgeClass(s.strength, 'strength')}">${s.strength}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="section">
                 <h2>📊 Tendencia Multi-Temporal</h2>
                 <div class="metric">
                     <span class="metric-label">Superior</span>
@@ -381,34 +444,6 @@ function renderDetail(data) {
                     <span class="metric-label">Alineación</span>
                     <span class="badge ${getBadgeClass(data.trend.emas.alignment)}">${data.trend.emas.alignment}</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="grid">
-            <div class="section">
-                <h2>🔺 Resistencias</h2>
-                ${data.levels.resistances.map(r => `
-                    <div class="level-item">
-                        <div>
-                            <strong>${formatNumber(r.level, 3)}</strong>
-                            <div class="level-type">${r.type}</div>
-                        </div>
-                        <span class="badge ${getBadgeClass(r.strength, 'strength')}">${r.strength}</span>
-                    </div>
-                `).join('')}
-            </div>
-
-            <div class="section">
-                <h2>🔻 Soportes</h2>
-                ${data.levels.supports.map(s => `
-                    <div class="level-item">
-                        <div>
-                            <strong>${formatNumber(s.level, 3)}</strong>
-                            <div class="level-type">${s.type}</div>
-                        </div>
-                        <span class="badge ${getBadgeClass(s.strength, 'strength')}">${s.strength}</span>
-                    </div>
-                `).join('')}
             </div>
         </div>
 
@@ -492,7 +527,7 @@ function renderDetail(data) {
 
         <div class="metric" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 5px; margin-top: 1rem;">
             <span class="metric-label">Análisis generado</span>
-            <span class="metric-value">${new Date(data.metadata.analysisTimestamp).toLocaleString('es-CL')}</span>
+            <span class="metric-value">${formatDate(data)}</span>
         </div>
     `;
 }

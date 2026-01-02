@@ -234,9 +234,11 @@
         }
 
         .type-arrow {
-            font-size: 2rem;
+            font-size: 1.5rem;
             color: var(--secondary);
             flex-shrink: 0;
+            margin-left: 0.5rem;
+            line-height: 1;
         }
 
         /* Symbols View */
@@ -398,6 +400,14 @@
             font-size: 0.9rem;
         }
 
+        .result-date {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
         /* Best Opportunities Card */
         .best-opportunities-card {
             background: linear-gradient(135deg, rgba(255, 102, 0, 0.15) 0%, rgba(45, 66, 99, 0.3) 100%);
@@ -457,6 +467,14 @@
         .opportunity-type {
             color: rgba(255,255,255,0.6);
             font-size: 0.9rem;
+        }
+
+        .opportunity-date {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         /* Detail View */
@@ -716,6 +734,7 @@
         <p>KTI Trading Analysis System - Análisis técnico profesional</p>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
