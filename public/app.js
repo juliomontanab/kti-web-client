@@ -1,6 +1,10 @@
 const API_BASE_URL = 'https://ffmzs9evxj.execute-api.us-east-1.amazonaws.com/dev';
+const APP_VERSION = '1.0.1'; // Incrementa esta versión en cada actualización
+
 let currentData = null;
 let navigationHistory = [];
+let currentOpportunities = [];
+let currentConfidenceFilter = null;
 
 // ========== API FUNCTIONS ==========
 
@@ -53,9 +57,9 @@ async function fetchSymbolDetail(id) {
     }
 }
 
-async function fetchBestOpportunities() {
+async function fetchBestOpportunities(minConfidence = 65) {
     try {
-        const response = await fetch(`${API_BASE_URL}/list/symbol/results/confidence`);
+        const response = await fetch(`${API_BASE_URL}/list/symbol/results/confidence/${minConfidence}`);
         if (!response.ok) throw new Error('Error al cargar mejores oportunidades');
         const result = await response.json();
         return result.data || result;
@@ -154,19 +158,25 @@ function renderResults(results, symbolName, symbolColor, symbolIcon) {
                 <div class="result-symbol">${result.instrument.symbol}</div>
                 <div class="result-timeframe">${result.instrument.timeframe}</div>
             </div>
-            <div class="result-name">${result.instrument.name}</div>
+            <div class="result-name">${result.instrument.emoji || ''} ${result.instrument.name}</div>
             <div class="result-type">${result.instrument.assetType}</div>
             <div class="result-date">📅 ${formatDate(result)}</div>
         </div>
     `).join('');
 }
 
-function renderBestOpportunities(opportunities) {
+function renderBestOpportunities(opportunities, confidenceFilter = 65) {
     const container = document.getElementById('resultsGrid');
     const header = document.getElementById('resultsHeader');
 
+    // Guardar el filtro actual
+    currentConfidenceFilter = confidenceFilter;
+
+    // Ordenar por confianza descendente
+    const sortedOpportunities = [...opportunities].sort((a, b) => b.analysis.confidence - a.analysis.confidence);
+
     header.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
             <div class="type-icon-large" style="background: #ff660020; color: #ff6600">
                 🔥
             </div>
@@ -175,10 +185,16 @@ function renderBestOpportunities(opportunities) {
                 <p>Análisis con mayor nivel de confianza - Ordenados por probabilidad</p>
             </div>
         </div>
+        <div class="confidence-filter">
+            <span class="filter-label">Confianza mínima:</span>
+            <button class="filter-btn ${confidenceFilter === 65 ? 'active' : ''}" onclick="filterByConfidence(65)">≥65%</button>
+            <button class="filter-btn ${confidenceFilter === 70 ? 'active' : ''}" onclick="filterByConfidence(70)">≥70%</button>
+            <button class="filter-btn ${confidenceFilter === 75 ? 'active' : ''}" onclick="filterByConfidence(75)">≥75%</button>
+            <button class="filter-btn ${confidenceFilter === 80 ? 'active' : ''}" onclick="filterByConfidence(80)">≥80%</button>
+            <button class="filter-btn ${confidenceFilter === 85 ? 'active' : ''}" onclick="filterByConfidence(85)">≥85%</button>
+            <button class="filter-btn ${confidenceFilter === 90 ? 'active' : ''}" onclick="filterByConfidence(90)">≥90%</button>
+        </div>
     `;
-
-    // Ordenar por confianza descendente
-    const sortedOpportunities = [...opportunities].sort((a, b) => b.analysis.confidence - a.analysis.confidence);
 
     container.innerHTML = sortedOpportunities.map(opp => {
         const directionClass = opp.analysis.mainScenario.direction === 'LONG' ? 'badge-success' : 'badge-danger';
@@ -193,13 +209,19 @@ function renderBestOpportunities(opportunities) {
                         ${opp.analysis.confidence}% confianza
                     </div>
                 </div>
-                <div class="opportunity-name">${opp.instrument.name}</div>
+                <div class="opportunity-name">${opp.instrument.emoji || ''} ${opp.instrument.name}</div>
                 <div class="opportunity-details">
                     <span class="badge ${directionClass}">${opp.analysis.mainScenario.direction}</span>
                     <span class="badge ${biasClass}">${opp.analysis.bias}</span>
                     <span class="result-timeframe">${opp.instrument.timeframe}</span>
                 </div>
                 <div class="opportunity-type">${opp.instrument.assetType}</div>
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Entrada sugerida:</span>
+                        <span style="color: var(--secondary); font-weight: bold; font-size: 1rem;">${formatNumber(opp.analysis.mainScenario.entry, 3)}</span>
+                    </div>
+                </div>
                 <div class="opportunity-date">📅 ${formatDate(opp)}</div>
             </div>
         `;
@@ -284,9 +306,17 @@ function renderDetail(data) {
     const priceChangeSymbol = data.price.change >= 0 ? '▲' : '▼';
 
     container.innerHTML = `
+        <div class="disclaimer">
+            <div class="disclaimer-icon">⚠️</div>
+            <div class="disclaimer-title">AVISO IMPORTANTE</div>
+            <div class="disclaimer-text">
+                Esta aplicación <strong>NO entrega consejos de inversión</strong>. Los análisis presentados son únicamente con fines educativos y de estudio de valores. Las decisiones de inversión son responsabilidad exclusiva del usuario. Consulte siempre con un asesor financiero profesional antes de tomar decisiones de inversión.
+            </div>
+        </div>
+
         <div class="price-header">
             <div class="instrument-info">
-                <h1>${data.instrument.symbol}</h1>
+                <h1>${data.instrument.emoji || ''} ${data.instrument.symbol}</h1>
                 <p>${data.instrument.name} | ${data.instrument.timeframe}</p>
             </div>
             <div class="price-display">
@@ -532,6 +562,17 @@ function renderDetail(data) {
     `;
 }
 
+// ========== FILTER FUNCTIONS ==========
+
+async function filterByConfidence(minConfidence) {
+    // Mostrar spinner mientras carga
+    document.getElementById('resultsGrid').innerHTML = '<div class="spinner"></div>';
+
+    // Hacer nueva llamada a la API con el filtro
+    const opportunities = await fetchBestOpportunities(minConfidence);
+    renderBestOpportunities(opportunities, minConfidence);
+}
+
 // ========== NAVIGATION FUNCTIONS ==========
 
 function showView(viewId) {
@@ -544,6 +585,14 @@ function showView(viewId) {
 
     // Show requested view
     document.getElementById(viewId).style.display = 'block';
+
+    // Show header when not in splash screen
+    const header = document.querySelector('.header');
+    if (viewId === 'splash') {
+        header.classList.remove('visible');
+    } else {
+        header.classList.add('visible');
+    }
 
     // Update back button visibility
     const backBtn = document.querySelector('.back-btn');
@@ -579,8 +628,8 @@ async function showBestOpportunities() {
     navigationHistory.push({ view: 'typesView' });
     showView('resultsView');
     document.getElementById('resultsGrid').innerHTML = '<div class="spinner"></div>';
-    const opportunities = await fetchBestOpportunities();
-    renderBestOpportunities(opportunities);
+    const opportunities = await fetchBestOpportunities(65);
+    renderBestOpportunities(opportunities, 65);
 }
 
 async function showDetail(id) {
@@ -600,9 +649,173 @@ function goBack() {
     }
 }
 
+// ========== GESTURE NAVIGATION ==========
+
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+
+function handleGesture() {
+    const swipeThreshold = 50; // Mínimo de píxeles para considerar un swipe
+    const horizontalSwipe = Math.abs(touchEndX - touchStartX);
+    const verticalSwipe = Math.abs(touchEndY - touchStartY);
+
+    // Solo procesar si el swipe horizontal es mayor que el vertical (evitar conflictos con scroll)
+    if (horizontalSwipe > verticalSwipe && horizontalSwipe > swipeThreshold) {
+        // Swipe derecha (volver atrás)
+        if (touchEndX > touchStartX) {
+            console.log('[Gesture] Swipe derecha detectado - Volver atrás');
+            goBack();
+        }
+    }
+}
+
+// Touch events para móviles y tablets
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleGesture();
+}, { passive: true });
+
+// Mouse events para trackpads y gestos de ratón
+let mouseStartX = 0;
+let mouseStartY = 0;
+let isMouseDown = false;
+
+document.addEventListener('mousedown', e => {
+    // Solo activar en el borde izquierdo de la pantalla (primeros 50px)
+    if (e.clientX < 50) {
+        isMouseDown = true;
+        mouseStartX = e.clientX;
+        mouseStartY = e.clientY;
+    }
+});
+
+document.addEventListener('mousemove', e => {
+    if (isMouseDown) {
+        const deltaX = e.clientX - mouseStartX;
+        const deltaY = Math.abs(e.clientY - mouseStartY);
+
+        // Si el movimiento horizontal es significativo y mayor que el vertical
+        if (deltaX > 100 && deltaX > deltaY) {
+            console.log('[Gesture] Mouse drag derecha detectado - Volver atrás');
+            isMouseDown = false;
+            goBack();
+        }
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    isMouseDown = false;
+});
+
+// Soporte para gestos de trackpad (wheel con deltaX)
+let lastWheelTime = 0;
+const wheelThrottle = 500; // Tiempo mínimo entre gestos de wheel
+
+document.addEventListener('wheel', e => {
+    const now = Date.now();
+
+    // Solo procesar swipes horizontales significativos
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 50) {
+        // Throttle para evitar múltiples activaciones
+        if (now - lastWheelTime > wheelThrottle) {
+            lastWheelTime = now;
+
+            // Swipe derecha en trackpad (deltaX negativo)
+            if (e.deltaX < -50) {
+                console.log('[Gesture] Trackpad swipe derecha detectado - Volver atrás');
+                goBack();
+            }
+        }
+    }
+}, { passive: true });
+
+// Atajos de teclado adicionales
+document.addEventListener('keydown', e => {
+    // Alt/Option + Flecha Izquierda = Volver
+    if ((e.altKey || e.metaKey) && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        console.log('[Gesture] Atajo de teclado detectado - Volver atrás');
+        goBack();
+    }
+
+    // Escape = Volver
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        console.log('[Gesture] Tecla Escape detectada - Volver atrás');
+        goBack();
+    }
+});
+
+// ========== VERSION CHECK & CACHE MANAGEMENT ==========
+
+function checkVersion() {
+    const storedVersion = localStorage.getItem('app_version');
+
+    if (storedVersion !== APP_VERSION) {
+        console.log(`[Version] Actualización detectada: ${storedVersion} -> ${APP_VERSION}`);
+
+        // Limpiar localStorage (excepto configuraciones importantes)
+        const keysToPreserve = ['user_preferences']; // Agrega aquí claves que quieras preservar
+        const preservedData = {};
+        keysToPreserve.forEach(key => {
+            const value = localStorage.getItem(key);
+            if (value) preservedData[key] = value;
+        });
+
+        localStorage.clear();
+
+        // Restaurar datos preservados
+        Object.keys(preservedData).forEach(key => {
+            localStorage.setItem(key, preservedData[key]);
+        });
+
+        // Guardar nueva versión
+        localStorage.setItem('app_version', APP_VERSION);
+
+        // Limpiar caché del navegador (Storage API)
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    if (!name.includes(APP_VERSION)) {
+                        console.log('[Cache] Eliminando caché antigua:', name);
+                        caches.delete(name);
+                    }
+                });
+            });
+        }
+
+        console.log('[Version] Caché limpiado, nueva versión:', APP_VERSION);
+
+        // Mostrar notificación al usuario
+        return true; // Nueva versión
+    }
+
+    return false; // Misma versión
+}
+
 // ========== INITIALIZATION ==========
 
 async function init() {
+    // Verificar versión y limpiar caché si es necesario
+    const isNewVersion = checkVersion();
+
+    if (isNewVersion) {
+        console.log('[Init] Nueva versión detectada, recargando en 2 segundos...');
+        // Opcional: recargar la página para asegurar que todo está actualizado
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 2000);
+        return;
+    }
+
     // Show splash screen
     showView('splash');
 
@@ -612,13 +825,33 @@ async function init() {
     // Load symbol types
     await showSymbolTypes();
 
-    // Register service worker
+    // Register service worker con manejo de actualizaciones
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('sw.js');
-            console.log('Service Worker registrado');
+            const registration = await navigator.serviceWorker.register('sw.js');
+            console.log('[SW] Service Worker registrado');
+
+            // Detectar actualizaciones del service worker
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('[SW] Actualización encontrada');
+
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'activated') {
+                        console.log('[SW] Nuevo service worker activado');
+                        // Opcional: notificar al usuario que hay una nueva versión
+                        // y ofrecerle recargar la página
+                    }
+                });
+            });
+
+            // Verificar si hay actualizaciones cada 5 minutos
+            setInterval(() => {
+                registration.update();
+            }, 5 * 60 * 1000);
+
         } catch (error) {
-            console.log('Error al registrar Service Worker:', error);
+            console.log('[SW] Error al registrar Service Worker:', error);
         }
     }
 }
