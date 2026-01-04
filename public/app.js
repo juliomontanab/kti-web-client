@@ -1,5 +1,5 @@
 const API_BASE_URL = 'https://ffmzs9evxj.execute-api.us-east-1.amazonaws.com/dev';
-const APP_VERSION = '1.0.1'; // Incrementa esta versión en cada actualización
+const APP_VERSION = '1.0.6'; // Incrementa esta versión en cada actualización
 
 let currentData = null;
 let navigationHistory = [];
@@ -66,6 +66,18 @@ async function fetchBestOpportunities(minConfidence = 65) {
     } catch (error) {
         console.error('Error:', error);
         return [];
+    }
+}
+
+async function fetchMarketIndexes() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/market/indexes`);
+        if (!response.ok) throw new Error('Error al cargar índices de mercado');
+        const result = await response.json();
+        return result.data || result;
+    } catch (error) {
+        console.error('Error:', error);
+        return null;
     }
 }
 
@@ -228,6 +240,218 @@ function renderBestOpportunities(opportunities, confidenceFilter = 65) {
     }).join('');
 }
 
+function renderMarketIndexes(data) {
+    if (!data) {
+        document.getElementById('marketIndexesWidget').style.display = 'none';
+        return;
+    }
+
+    const container = document.getElementById('marketIndexesContent');
+    const widget = document.getElementById('marketIndexesWidget');
+
+    widget.style.display = 'block';
+
+    const { fearGreedIndex, pentagonPizzaIndex } = data;
+
+    // Construir el HTML con medidores gráficos
+    let html = '';
+
+    // Fear & Greed Index Section
+    if (fearGreedIndex && fearGreedIndex.markets) {
+        const { stock, crypto } = fearGreedIndex.markets;
+        const divergence = fearGreedIndex.divergence;
+
+        html += `
+            <div class="index-section">
+                <div class="index-section-title">📊 Fear & Greed Index</div>
+
+                <div class="fg-markets-grid">
+                    <div class="fg-market-item">
+                        <div class="fg-market-title">📈 Stock Market</div>
+                        <div class="fg-market-value" style="color: ${getColorForFearGreed(stock.value)}">
+                            ${stock.value}
+                        </div>
+                        <span class="badge ${getBadgeClassForFearGreed(stock.label)}">${stock.label}</span>
+                        <div class="gauge-container" style="margin-top: 1rem;">
+                            ${createCircularGauge(stock.value, 0, 100, getColorForFearGreed(stock.value))}
+                        </div>
+                    </div>
+
+                    <div class="fg-market-item">
+                        <div class="fg-market-title">₿ Crypto Market</div>
+                        <div class="fg-market-value" style="color: ${getColorForFearGreed(crypto.value)}">
+                            ${crypto.value}
+                        </div>
+                        <span class="badge ${getBadgeClassForFearGreed(crypto.label)}">${crypto.label}</span>
+                        <div class="gauge-container" style="margin-top: 1rem;">
+                            ${createCircularGauge(crypto.value, 0, 100, getColorForFearGreed(crypto.value))}
+                        </div>
+                    </div>
+                </div>
+
+                ${divergence && divergence.isDivergent ? `
+                    <div class="divergence-alert">
+                        <div class="divergence-alert-title">⚠️ DIVERGENCIA DETECTADA</div>
+                        <div class="divergence-alert-text">
+                            Diferencia de ${divergence.divergence} puntos entre Stock (${stock.value}) y Crypto (${crypto.value})
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${fearGreedIndex.recommendation ? `
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(45, 66, 99, 0.3); border-radius: 8px; font-size: 0.9rem; line-height: 1.5;">
+                        <strong>💡 Recomendación:</strong> ${fearGreedIndex.recommendation}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    // Pentagon Pizza Index (DEFCON) Section
+    if (pentagonPizzaIndex) {
+        const defconLevel = parseInt(pentagonPizzaIndex.defconLevel) || 5;
+        const status = pentagonPizzaIndex.status || 'UNKNOWN';
+        const riskClass = pentagonPizzaIndex.riskClassification || 'NORMAL';
+        const geoContext = pentagonPizzaIndex.geopoliticalContext || {};
+
+        html += `
+            <div class="index-section">
+                <div class="index-section-title">🌍 Defcon Index</div>
+
+                <div class="defcon-indicator">
+                    <div class="defcon-level-display defcon-${defconLevel}">
+                        <div style="text-align: center;">
+                            <div class="defcon-number" style="color: ${getColorForDefcon(defconLevel)}">
+                                ${defconLevel}
+                            </div>
+                            <div class="defcon-status" style="color: ${getColorForDefcon(defconLevel)}">
+                                DEFCON ${defconLevel}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="defcon-info">
+                        <div class="defcon-info-item">
+                            <span class="defcon-info-label">Estado:</span>
+                            <span class="badge ${status === 'CRITICAL' || status === 'ALERT' ? 'badge-danger' : status === 'OPERATIONAL' ? 'badge-warning' : 'badge-info'}">${status}</span>
+                        </div>
+
+                        <div class="defcon-info-item">
+                            <span class="defcon-info-label">Clasificación:</span>
+                            <span class="badge ${riskClass === 'CRITICAL' ? 'badge-danger' : riskClass === 'ALERT' ? 'badge-warning' : 'badge-info'}">${riskClass}</span>
+                        </div>
+
+                        ${geoContext.riskLevel ? `
+                            <div class="defcon-info-item">
+                                <span class="defcon-info-label">Nivel de Riesgo:</span>
+                                <span class="badge ${geoContext.riskLevel === 'CRITICAL' ? 'badge-danger' : geoContext.riskLevel === 'ALERT' ? 'badge-warning' : 'badge-success'}">${geoContext.riskLevel}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${pentagonPizzaIndex.anomalyDetected ? `
+                        <div class="divergence-alert">
+                            <div class="divergence-alert-title">⚠️ ANOMALÍA DETECTADA</div>
+                            ${pentagonPizzaIndex.anomalyDescription ? `
+                                <div class="divergence-alert-text">${pentagonPizzaIndex.anomalyDescription}</div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+
+                    ${pentagonPizzaIndex.recommendation ? `
+                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(45, 66, 99, 0.3); border-radius: 8px; font-size: 0.9rem; line-height: 1.5; max-width: 300px; text-align: center;">
+                            <strong>💡 Recomendación:</strong> ${pentagonPizzaIndex.recommendation}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+
+    // Animar los gauges después de renderizar
+    setTimeout(() => animateGauges(), 100);
+}
+
+// Helper: Crear medidor circular SVG
+function createCircularGauge(value, min, max, color) {
+    const radius = 80;
+    const circumference = 2 * Math.PI * radius;
+    const percentage = ((value - min) / (max - min)) * 100;
+    const offset = circumference - (percentage / 100) * circumference;
+
+    return `
+        <svg class="gauge-svg" width="100%" height="100%" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
+            <circle class="gauge-background" cx="100" cy="100" r="${radius}"></circle>
+            <circle
+                class="gauge-progress"
+                cx="100"
+                cy="100"
+                r="${radius}"
+                stroke="${color}"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${offset}"
+                data-value="${value}"
+                data-circumference="${circumference}"
+            ></circle>
+        </svg>
+        <div class="gauge-center-text">
+            <span class="gauge-value" style="color: ${color}">${value}</span>
+        </div>
+    `;
+}
+
+// Helper: Animar los medidores circulares
+function animateGauges() {
+    const gauges = document.querySelectorAll('.gauge-progress');
+    gauges.forEach(gauge => {
+        const circumference = parseFloat(gauge.getAttribute('data-circumference'));
+        const value = parseFloat(gauge.getAttribute('data-value'));
+        const percentage = value;
+        const offset = circumference - (percentage / 100) * circumference;
+
+        // Iniciar desde offset completo (0%)
+        gauge.style.strokeDashoffset = circumference;
+
+        // Animar al valor final
+        setTimeout(() => {
+            gauge.style.strokeDashoffset = offset;
+        }, 50);
+    });
+}
+
+// Helper: Obtener color para Fear & Greed
+function getColorForFearGreed(value) {
+    if (value <= 25) return '#e74c3c'; // Extreme Fear - rojo
+    if (value <= 45) return '#f39c12'; // Fear - naranja
+    if (value <= 55) return '#95a5a6'; // Neutral - gris
+    if (value <= 75) return '#3498db'; // Greed - azul
+    return '#27ae60'; // Extreme Greed - verde
+}
+
+// Helper: Obtener clase de badge para Fear & Greed
+function getBadgeClassForFearGreed(label) {
+    const lower = label.toLowerCase();
+    if (lower.includes('extreme fear')) return 'badge-danger';
+    if (lower.includes('fear')) return 'badge-warning';
+    if (lower.includes('neutral')) return 'badge-info';
+    if (lower.includes('greed')) return 'badge-success';
+    return 'badge-info';
+}
+
+// Helper: Obtener color para DEFCON
+function getColorForDefcon(level) {
+    switch (level) {
+        case 1: return '#e74c3c'; // DEFCON 1 - Critical (rojo)
+        case 2: return '#e67e22'; // DEFCON 2 - Alert (naranja oscuro)
+        case 3: return '#f39c12'; // DEFCON 3 - Elevated (naranja/amarillo)
+        case 4: return '#3498db'; // DEFCON 4 - Normal (azul)
+        case 5: return '#27ae60'; // DEFCON 5 - Low (verde)
+        default: return '#95a5a6'; // Unknown (gris)
+    }
+}
+
 // ========== FORMATTING FUNCTIONS ==========
 
 function formatDate(data) {
@@ -293,6 +517,70 @@ function getBadgeClass(value, type = 'trend') {
     return 'badge-info';
 }
 
+// ========== SWING ANALYSIS HELPERS ==========
+
+function getSwingPhaseBadge(phase) {
+    switch(phase) {
+        case 'EARLY_MOMENTUM': return 'badge-success';
+        case 'ACCELERATION': return 'badge-success';
+        case 'LATE_MOMENTUM': return 'badge-warning';
+        case 'EXHAUSTION': return 'badge-danger';
+        case 'CONSOLIDATION': return 'badge-info';
+        case 'REVERSAL': return 'badge-danger';
+        default: return 'badge-info';
+    }
+}
+
+function formatSwingPhase(phase) {
+    const phases = {
+        'EARLY_MOMENTUM': 'Momentum Inicial',
+        'ACCELERATION': 'Aceleración',
+        'LATE_MOMENTUM': 'Momentum Tardío',
+        'EXHAUSTION': 'Agotamiento',
+        'CONSOLIDATION': 'Consolidación',
+        'REVERSAL': 'Reversión'
+    };
+    return phases[phase] || phase;
+}
+
+function formatSwingAction(action) {
+    const actions = {
+        'ENTER_NOW': 'Entrar Ahora',
+        'WAIT_PULLBACK': 'Esperar Retroceso',
+        'WAIT_CONFIRMATION': 'Esperar Confirmación',
+        'AVOID': 'Evitar Entrada'
+    };
+    return actions[action] || action;
+}
+
+function formatVolumeTrend(trend) {
+    const trends = {
+        'INCREASING': 'Creciente',
+        'DECREASING': 'Decreciente',
+        'STABLE': 'Estable'
+    };
+    return trends[trend] || trend;
+}
+
+function formatMomentumStrength(strength) {
+    const strengths = {
+        'STRONG': 'Fuerte',
+        'MODERATE': 'Moderado',
+        'WEAK': 'Débil'
+    };
+    return strengths[strength] || strength;
+}
+
+function formatPriceStructure(structure) {
+    const structures = {
+        'BREAKING_OUT': 'Rompiendo',
+        'TRENDING': 'En Tendencia',
+        'RANGING': 'En Rango',
+        'RETRACING': 'Retrocediendo'
+    };
+    return structures[structure] || structure;
+}
+
 function renderDetail(data) {
     currentData = data;
     const container = document.getElementById('detailContent');
@@ -333,6 +621,74 @@ function renderDetail(data) {
             <p><strong>Contexto Macro:</strong> ${data.summary.macroContext}</p>
             <p><strong>Recomendación:</strong> ${data.summary.mainRecommendation}</p>
             <p><strong>Niveles Clave:</strong> ${data.summary.keyLevels}</p>
+
+            ${data.fearGreedContext ? `
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <p style="font-weight: 600; color: var(--accent); margin-bottom: 0.75rem;">📊 Contexto Fear & Greed</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem;">
+                        <div>
+                            <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Stock Market:</span>
+                            <div style="margin-top: 0.25rem;">
+                                <span class="badge ${data.fearGreedContext.stockLabel === 'Fear' || data.fearGreedContext.stockLabel === 'Extreme Fear' ? 'badge-danger' : data.fearGreedContext.stockLabel === 'Greed' || data.fearGreedContext.stockLabel === 'Extreme Greed' ? 'badge-success' : 'badge-warning'}">${data.fearGreedContext.stockLabel}</span>
+                                <span style="margin-left: 0.5rem; font-weight: bold;">${data.fearGreedContext.stockValue}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Crypto Market:</span>
+                            <div style="margin-top: 0.25rem;">
+                                <span class="badge ${data.fearGreedContext.cryptoLabel === 'Fear' || data.fearGreedContext.cryptoLabel === 'Extreme Fear' ? 'badge-danger' : data.fearGreedContext.cryptoLabel === 'Greed' || data.fearGreedContext.cryptoLabel === 'Extreme Greed' ? 'badge-success' : 'badge-warning'}">${data.fearGreedContext.cryptoLabel}</span>
+                                <span style="margin-left: 0.5rem; font-weight: bold;">${data.fearGreedContext.cryptoValue}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                        <strong>Impacto:</strong>
+                        <span class="badge ${data.fearGreedContext.sentimentImpact === 'BULLISH' ? 'badge-success' : data.fearGreedContext.sentimentImpact === 'BEARISH' ? 'badge-danger' : 'badge-warning'}" style="margin-left: 0.25rem;">${data.fearGreedContext.sentimentImpact}</span>
+                    </p>
+                    ${data.fearGreedContext.divergenceDetected ? `
+                        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-top: 0.5rem;">
+                            <strong>⚠️ Divergencia:</strong> ${data.fearGreedContext.divergenceDescription}
+                        </p>
+                    ` : `
+                        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-top: 0.5rem;">
+                            ${data.fearGreedContext.divergenceDescription}
+                        </p>
+                    `}
+                </div>
+            ` : ''}
+
+            ${data.geopoliticalContext ? `
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <p style="font-weight: 600; color: var(--accent); margin-bottom: 0.75rem;">🌍 Contexto Geopolítico</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div>
+                            <span style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">DEFCON</span>
+                            <div style="margin-top: 0.25rem;">
+                                <span style="font-size: 1.5rem; font-weight: bold; color: ${data.geopoliticalContext.defconLevel <= 2 ? 'var(--danger)' : data.geopoliticalContext.defconLevel === 3 ? 'var(--warning)' : 'var(--success)'};">${data.geopoliticalContext.defconLevel}</span>
+                                <span class="badge ${data.geopoliticalContext.defconStatus === 'CRITICAL' || data.geopoliticalContext.defconStatus === 'ALERT' ? 'badge-danger' : 'badge-warning'}" style="margin-left: 0.5rem; font-size: 0.75rem;">${data.geopoliticalContext.defconStatus}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">Riesgo</span>
+                            <div style="margin-top: 0.25rem;">
+                                <span class="badge ${data.geopoliticalContext.riskClassification === 'CRITICAL' ? 'badge-danger' : data.geopoliticalContext.riskClassification === 'ELEVATED' ? 'badge-warning' : 'badge-info'}">${data.geopoliticalContext.riskClassification}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">Impacto</span>
+                            <div style="margin-top: 0.25rem;">
+                                <span class="badge ${data.geopoliticalContext.geopoliticalImpact === 'BULLISH' ? 'badge-success' : data.geopoliticalContext.geopoliticalImpact === 'BEARISH' ? 'badge-danger' : 'badge-warning'}">${data.geopoliticalContext.geopoliticalImpact}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                        <strong>${data.geopoliticalContext.confluentWithTechnicals ? '✓' : '⚠️'} Análisis Técnico:</strong> ${data.geopoliticalContext.confluentWithTechnicals ? 'Confluente' : 'Divergente'}
+                    </p>
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-top: 0.5rem; line-height: 1.5;">
+                        ${data.geopoliticalContext.riskAssessment}
+                    </p>
+                </div>
+            ` : ''}
         </div>
 
         <div class="section trade-setup" style="margin-bottom: 1.5rem;">
@@ -392,6 +748,109 @@ function renderDetail(data) {
                         </div>
                     `).join('')}
                 </div>
+            </div>
+        ` : ''}
+
+        ${data.swingAnalysis ? `
+            <div class="section" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(45, 66, 99, 0.3) 100%); border: 2px solid rgba(147, 51, 234, 0.4);">
+                <h2>📈 Análisis de Swing</h2>
+
+                <div class="metric">
+                    <span class="metric-label">Fase del Swing</span>
+                    <span class="badge ${getSwingPhaseBadge(data.swingAnalysis.phase)}">${formatSwingPhase(data.swingAnalysis.phase)}</span>
+                </div>
+
+                <div class="metric">
+                    <span class="metric-label">Calidad de Entrada</span>
+                    <span class="badge ${data.swingAnalysis.entryQuality === 'EXCELLENT' ? 'badge-success' : data.swingAnalysis.entryQuality === 'GOOD' ? 'badge-info' : data.swingAnalysis.entryQuality === 'FAIR' ? 'badge-warning' : 'badge-danger'}">${data.swingAnalysis.entryQuality}</span>
+                </div>
+
+                ${data.swingAnalysis.swingMetrics ? `
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <strong style="color: var(--accent); margin-bottom: 0.75rem; display: block;">📊 Métricas del Swing</strong>
+
+                        <div class="metric">
+                            <span class="metric-label">Desde Swing Low</span>
+                            <span class="metric-value" style="color: var(--success);">${formatPercent(data.swingAnalysis.swingMetrics.percentFromSwingLow, 1)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Hasta Swing High</span>
+                            <span class="metric-value" style="color: var(--danger);">${formatPercent(data.swingAnalysis.swingMetrics.percentFromSwingHigh, 1)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Rango del Swing</span>
+                            <span class="metric-value">${formatNumber(data.swingAnalysis.swingMetrics.swingRange, 2)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Posición Actual</span>
+                            <span class="metric-value">${data.swingAnalysis.swingMetrics.currentPositionInSwing}</span>
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${data.swingAnalysis.entryRecommendation ? `
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(147, 51, 234, 0.15); border-left: 4px solid rgba(147, 51, 234, 0.6); border-radius: 5px;">
+                        <strong style="color: rgba(147, 51, 234, 1); margin-bottom: 0.75rem; display: block;">💡 Recomendación de Entrada</strong>
+
+                        <div class="metric">
+                            <span class="metric-label">Acción</span>
+                            <span class="badge ${data.swingAnalysis.entryRecommendation.action === 'ENTER_NOW' ? 'badge-success' : data.swingAnalysis.entryRecommendation.action === 'WAIT_PULLBACK' ? 'badge-warning' : 'badge-danger'}">${formatSwingAction(data.swingAnalysis.entryRecommendation.action)}</span>
+                        </div>
+
+                        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.9); margin: 0.75rem 0; line-height: 1.5;">
+                            ${data.swingAnalysis.entryRecommendation.reasoning}
+                        </p>
+
+                        <div class="metric">
+                            <span class="metric-label">Entrada Ideal</span>
+                            <span class="metric-value" style="color: var(--accent);">${formatNumber(data.swingAnalysis.entryRecommendation.idealEntry, 3)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Stop Loss</span>
+                            <span class="metric-value" style="color: var(--danger);">${formatNumber(data.swingAnalysis.entryRecommendation.stopLoss, 3)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Take Profit</span>
+                            <span class="metric-value" style="color: var(--success);">${formatNumber(data.swingAnalysis.entryRecommendation.takeProfit, 3)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Risk/Reward</span>
+                            <span class="badge badge-info">${data.swingAnalysis.entryRecommendation.riskRewardRatio}:1</span>
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${data.swingAnalysis.phaseIndicators ? `
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                        <strong style="color: var(--accent); margin-bottom: 0.75rem; display: block;">🔍 Indicadores de Fase</strong>
+
+                        <div class="metric">
+                            <span class="metric-label">Tendencia de Volumen</span>
+                            <span class="badge ${data.swingAnalysis.phaseIndicators.volumeTrend === 'INCREASING' ? 'badge-success' : data.swingAnalysis.phaseIndicators.volumeTrend === 'DECREASING' ? 'badge-danger' : 'badge-warning'}">${formatVolumeTrend(data.swingAnalysis.phaseIndicators.volumeTrend)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Fuerza del Momentum</span>
+                            <span class="badge ${data.swingAnalysis.phaseIndicators.momentumStrength === 'STRONG' ? 'badge-success' : data.swingAnalysis.phaseIndicators.momentumStrength === 'MODERATE' ? 'badge-warning' : 'badge-danger'}">${formatMomentumStrength(data.swingAnalysis.phaseIndicators.momentumStrength)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Estructura de Precio</span>
+                            <span class="badge badge-info">${formatPriceStructure(data.swingAnalysis.phaseIndicators.priceStructure)}</span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">Divergencia</span>
+                            <span class="badge ${data.swingAnalysis.phaseIndicators.divergencePresent ? 'badge-warning' : 'badge-success'}">${data.swingAnalysis.phaseIndicators.divergencePresent ? 'Presente' : 'No detectada'}</span>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         ` : ''}
 
@@ -604,8 +1063,15 @@ function showView(viewId) {
 async function showSymbolTypes() {
     showView('typesView');
     document.getElementById('typesGrid').innerHTML = '<div class="spinner"></div>';
-    const types = await fetchSymbolTypes();
+
+    // Cargar tipos de símbolos e índices de mercado en paralelo
+    const [types, marketIndexes] = await Promise.all([
+        fetchSymbolTypes(),
+        fetchMarketIndexes()
+    ]);
+
     renderSymbolTypes(types);
+    renderMarketIndexes(marketIndexes);
 }
 
 async function showSymbolsByType(typeCode, typeName, typeColor, typeIcon) {
