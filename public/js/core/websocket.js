@@ -42,7 +42,12 @@ export function connectWebSocket() {
     ws.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data);
-            console.log('[WS] Mensaje recibido:', data);
+
+            // LOG COMPLETO DEL MENSAJE RAW
+            console.log('[WS] ============================================');
+            console.log('[WS] MENSAJE COMPLETO RECIBIDO:');
+            console.log(JSON.stringify(data, null, 2));
+            console.log('[WS] ============================================');
 
             if (data.message && Array.isArray(data.message)) {
                 console.log(`[WS] Procesando ${data.message.length} símbolos...`);

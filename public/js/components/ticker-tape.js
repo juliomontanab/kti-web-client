@@ -22,20 +22,46 @@ export class TickerTape {
             const priceEl = item.querySelector('.ticker-price');
             const changeEl = item.querySelector('.ticker-change');
 
-            if (priceEl) priceEl.textContent = formatNumber(priceData.price, 2);
-            if (changeEl) {
-                const sign = priceData.changePercent >= 0 ? '+' : '';
-                changeEl.textContent = `${sign}${priceData.changePercent.toFixed(2)}%`;
+            // Get current values from DOM (trim to remove whitespace)
+            const currentPriceText = priceEl ? priceEl.textContent.trim().replace(/,/g, '') : '';
+            const currentChangeText = changeEl ? changeEl.textContent.trim() : '';
+
+            // Format new values
+            const newPriceFormatted = formatNumber(priceData.price, 2);
+            const sign = priceData.changePercent >= 0 ? '+' : '';
+            const newChangeFormatted = `${sign}${priceData.changePercent.toFixed(2)}%`;
+
+            // Only update if values actually changed (compare formatted strings)
+            // Empty current value means first render, so update
+            let hasChanged = false;
+
+            if (priceEl) {
+                const newPriceClean = newPriceFormatted.replace(/,/g, '');
+                if (!currentPriceText || currentPriceText !== newPriceClean) {
+                    priceEl.textContent = newPriceFormatted;
+                    hasChanged = true;
+                }
             }
 
-            // Update color class
-            item.classList.remove('up', 'down');
-            item.classList.add(priceData.changePercent >= 0 ? 'up' : 'down');
+            if (changeEl) {
+                if (!currentChangeText || currentChangeText !== newChangeFormatted) {
+                    changeEl.textContent = newChangeFormatted;
+                    hasChanged = true;
+                }
+            }
 
-            // Flash animation
-            item.style.animation = 'none';
-            item.offsetHeight; // Trigger reflow
-            item.style.animation = priceData.changePercent >= 0 ? 'priceFlash 0.5s ease' : 'priceFlashDown 0.5s ease';
+            // Only update color class and animation if something changed
+            if (hasChanged) {
+                item.classList.remove('up', 'down');
+                item.classList.add(priceData.changePercent >= 0 ? 'up' : 'down');
+
+                // Only animate if there was a previous value (not first load)
+                if (currentPriceText && currentChangeText) {
+                    item.style.animation = 'none';
+                    item.offsetHeight; // Trigger reflow
+                    item.style.animation = priceData.changePercent >= 0 ? 'priceFlash 0.5s ease' : 'priceFlashDown 0.5s ease';
+                }
+            }
         });
     }
 

@@ -54,17 +54,41 @@ export class Watchlist {
         const priceEl = item.querySelector('.wl-price');
         const changeEl = item.querySelector('.wl-change');
 
-        if (priceEl) priceEl.textContent = formatNumber(priceData.price, 2);
-        if (changeEl) {
-            changeEl.textContent = formatPercent(priceData.changePercent);
-            changeEl.classList.remove('up', 'down');
-            changeEl.classList.add(priceData.changePercent >= 0 ? 'up' : 'down');
+        // Get current values from DOM (trim to remove whitespace)
+        const currentPriceText = priceEl ? priceEl.textContent.trim().replace(/,/g, '') : '';
+        const currentChangeText = changeEl ? changeEl.textContent.trim() : '';
+
+        // Format new values
+        const newPriceFormatted = formatNumber(priceData.price, 2);
+        const newChangeFormatted = formatPercent(priceData.changePercent);
+
+        // Only update if values actually changed (compare formatted strings)
+        // Empty current value means first render, so update
+        let hasChanged = false;
+
+        if (priceEl) {
+            const newPriceClean = newPriceFormatted.replace(/,/g, '');
+            if (!currentPriceText || currentPriceText !== newPriceClean) {
+                priceEl.textContent = newPriceFormatted;
+                hasChanged = true;
+            }
         }
 
-        // Flash animation
-        item.style.animation = 'none';
-        item.offsetHeight;
-        item.style.animation = priceData.changePercent >= 0 ? 'priceFlash 0.3s ease' : 'priceFlashDown 0.3s ease';
+        if (changeEl) {
+            if (!currentChangeText || currentChangeText !== newChangeFormatted) {
+                changeEl.textContent = newChangeFormatted;
+                changeEl.classList.remove('up', 'down');
+                changeEl.classList.add(priceData.changePercent >= 0 ? 'up' : 'down');
+                hasChanged = true;
+            }
+        }
+
+        // Only apply flash animation if something changed AND it's not the first update
+        if (hasChanged && currentPriceText && currentChangeText) {
+            item.style.animation = 'none';
+            item.offsetHeight;
+            item.style.animation = priceData.changePercent >= 0 ? 'priceFlash 0.3s ease' : 'priceFlashDown 0.3s ease';
+        }
     }
 
     render() {

@@ -22,13 +22,22 @@ export class HeatMap {
         if (!cell) return;
 
         const changeEl = cell.querySelector('.cell-change');
-        if (changeEl) {
-            const sign = priceData.changePercent >= 0 ? '+' : '';
-            changeEl.textContent = `${sign}${priceData.changePercent.toFixed(1)}%`;
-        }
 
-        // Update background color
-        cell.style.backgroundColor = this.getColor(priceData.changePercent);
+        // Get current value from DOM (trim to remove whitespace)
+        const currentChangeText = changeEl ? changeEl.textContent.trim() : '';
+
+        // Format new value
+        const sign = priceData.changePercent >= 0 ? '+' : '';
+        const newChangeFormatted = `${sign}${priceData.changePercent.toFixed(1)}%`;
+
+        // Only update if value actually changed (compare formatted strings)
+        // Empty current value means first render, so update
+        if (changeEl && (!currentChangeText || currentChangeText !== newChangeFormatted)) {
+            changeEl.textContent = newChangeFormatted;
+
+            // Update background color
+            cell.style.backgroundColor = this.getColor(priceData.changePercent);
+        }
     }
 
     getColor(change) {

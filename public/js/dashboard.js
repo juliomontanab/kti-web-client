@@ -1103,27 +1103,61 @@ class DashboardApp {
     }
 
     updateDetailsPrice(priceData) {
-        console.log('[Dashboard] updateDetailsPrice llamado con:', priceData);
         const container = document.getElementById('detail-price-container');
         if (!container) {
-            console.warn('[Dashboard] detail-price-container NO encontrado en DOM');
             return;
         }
 
-        console.log('[Dashboard] detail-price-container encontrado');
         const priceMain = container.querySelector('.price-main');
         const priceChange = container.querySelector('.price-change');
 
-        console.log('[Dashboard] Elementos encontrados - priceMain:', !!priceMain, 'priceChange:', !!priceChange);
+        if (!priceMain) return;
 
-        if (priceMain) {
-            priceMain.textContent = formatNumber(priceData.price, 2);
-            console.log('[Dashboard] Precio actualizado a:', priceMain.textContent);
+        // Get current price from DOM (remove formatting and trim)
+        const currentPriceText = priceMain.textContent.trim().replace(/,/g, '');
+        const currentPrice = parseFloat(currentPriceText);
+        const newPrice = priceData.price;
+
+        // Format both prices to 2 decimals for comparison (same as display format)
+        const currentPriceFormatted = formatNumber(currentPrice, 2);
+        const newPriceFormatted = formatNumber(newPrice, 2);
+
+        // Only update if the formatted price is different
+        // Empty or NaN current value means first render, so update without animation
+        if (!currentPriceText || isNaN(currentPrice) || currentPriceFormatted !== newPriceFormatted) {
+            const isFirstUpdate = !currentPriceText || isNaN(currentPrice);
+
+            if (!isFirstUpdate) {
+                console.log('[Dashboard] Precio cambiado de', currentPriceFormatted, 'a', newPriceFormatted);
+            }
+
+            // Update price
+            priceMain.textContent = newPriceFormatted;
+
+            // Only add blink animation if it's not the first update
+            if (!isFirstUpdate) {
+                container.classList.remove('price-update-blink');
+                // Force reflow to restart animation
+                void container.offsetWidth;
+                container.classList.add('price-update-blink');
+
+                // Remove animation class after it completes
+                setTimeout(() => {
+                    container.classList.remove('price-update-blink');
+                }, 600);
+            }
         }
+
+        // Update the change percentage only if it changed
         if (priceChange) {
-            priceChange.textContent = formatPercent(priceData.changePercent);
-            priceChange.className = `price-change ${priceData.changePercent >= 0 ? 'bullish' : 'bearish'}`;
-            console.log('[Dashboard] Cambio actualizado a:', priceChange.textContent);
+            const currentChangeText = priceChange.textContent.trim();
+            const newChangeText = formatPercent(priceData.changePercent);
+            const newClassName = `price-change ${priceData.changePercent >= 0 ? 'bullish' : 'bearish'}`;
+
+            if (!currentChangeText || currentChangeText !== newChangeText || priceChange.className !== newClassName) {
+                priceChange.textContent = newChangeText;
+                priceChange.className = newClassName;
+            }
         }
     }
 
