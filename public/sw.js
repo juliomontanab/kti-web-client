@@ -1,5 +1,5 @@
 // Incrementa esta versión cada vez que hagas cambios
-const VERSION = '1.0.1';
+const VERSION = '2.0.0';
 const CACHE_NAME = `trading-analysis-v${VERSION}`;
 const urlsToCache = [
     '/',
