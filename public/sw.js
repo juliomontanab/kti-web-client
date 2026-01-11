@@ -1,5 +1,5 @@
 // Incrementa esta versión cada vez que hagas cambios
-const VERSION = '3.0.0';
+const VERSION = '3.0.3';
 const CACHE_NAME = `trading-analysis-v${VERSION}`;
 const urlsToCache = [
     '/',
@@ -8,6 +8,8 @@ const urlsToCache = [
     '/legacy.html',
     '/js/dashboard.js',
     '/css/dashboard-pro.css',
+    '/css/narrative-engine.css',
+    '/js/narrative-views.js',
     '/manifest.json',
     '/icon-192.png',
     '/icon-512.png'

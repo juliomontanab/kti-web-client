@@ -15,6 +15,7 @@ import { HeatMap } from './components/heatmap.js';
 import { AlertManager } from './components/alerts.js';
 import { Screener } from './components/screener.js';
 import { setupDefaultShortcuts } from './utils/keyboard.js';
+import { renderExecutiveView, renderInvestmentCardView, renderTechnicalView } from './narrative-views.js';
 
 class DashboardApp {
     constructor() {
@@ -664,19 +665,15 @@ class DashboardApp {
         const detailsContent = document.getElementById('details-content');
         if (!detailsContent) return;
 
-        const signal = detail.analysis?.mainScenario;
-        const altSignal = detail.analysis?.alternativeScenario;
-        const price = detail.price;
-        const trend = detail.trend;
-        const indicators = detail.indicators;
-        const levels = detail.levels;
-        const correlations = detail.correlations;
-        const patterns = detail.patterns;
-        const swing = detail.swingAnalysis;
-        const fearGreed = detail.fearGreedContext;
-        const geopolitical = detail.geopoliticalContext;
-        const risk = detail.riskManagement;
-        const summary = detail.summary;
+        // Debug: Log detail structure to console
+        console.log('[KTI] Report detail structure:', {
+            hasExecutive: !!detail.executive,
+            hasInvestmentCard: !!detail.investmentCard,
+            hasTechnical: !!detail.technical,
+            detailKeys: Object.keys(detail)
+        });
+
+        const price = detail.technical?.price || detail.price;
 
         detailsContent.innerHTML = `
             <div class="report-detail">
@@ -708,460 +705,39 @@ class DashboardApp {
                     ` : ''}
                 </div>
 
-                <!-- Summary -->
-                ${summary ? `
-                <div class="detail-section summary-section">
-                    <h5>Resumen</h5>
-                    <p class="summary-text">${summary.currentSituation || ''}</p>
-                    ${summary.macroContext ? `<p class="summary-macro"><strong>Contexto Macro:</strong> ${summary.macroContext}</p>` : ''}
-                    ${summary.mainRecommendation ? `<p class="summary-recommendation"><strong>Recomendación:</strong> ${summary.mainRecommendation}</p>` : ''}
-                    ${summary.keyLevels ? `<p class="summary-levels"><strong>Niveles clave:</strong> ${summary.keyLevels}</p>` : ''}
-                </div>
-                ` : ''}
+                <!-- Tab Navigation -->
+                <nav class="detail-tabs" id="detail-tabs">
+                    <button class="detail-tab-btn active" data-detail-tab="executive">
+                        <span class="tab-icon">👔</span>
+                        <span class="tab-label">Ejecutivo</span>
+                    </button>
+                    <button class="detail-tab-btn" data-detail-tab="investment">
+                        <span class="tab-icon">📋</span>
+                        <span class="tab-label">Resumen</span>
+                    </button>
+                    <button class="detail-tab-btn" data-detail-tab="technical">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-label">Técnico</span>
+                    </button>
+                </nav>
 
-                <!-- Main Scenario -->
-                ${signal ? `
-                <div class="detail-section">
-                    <h5>Escenario Principal</h5>
-                    <div class="scenario-info">
-                        <span class="signal-badge ${signal.direction?.toLowerCase()}">${signal.direction}</span>
-                        <span class="probability">${signal.probability}%</span>
+                <!-- Tab Content Container -->
+                <div class="detail-tab-content-container">
+                    <!-- CAPA 1: EJECUTIVO (Default View) -->
+                    <div class="detail-tab-content active" id="detail-tab-executive">
+                        ${renderExecutiveView(detail)}
                     </div>
-                    ${signal.reasoning ? `<p class="scenario-reasoning">${signal.reasoning}</p>` : ''}
-                    <div class="scenario-levels">
-                        <div class="level-row">
-                            <span class="level-label">Entry</span>
-                            <span class="level-value">${formatNumber(signal.entry, 2)}</span>
-                        </div>
-                        <div class="level-row">
-                            <span class="level-label">Stop Loss</span>
-                            <span class="level-value stop">${formatNumber(signal.stopLoss, 2)}</span>
-                        </div>
-                        ${signal.targets?.map((t, i) => `
-                            <div class="level-row">
-                                <span class="level-label">Target ${i + 1}</span>
-                                <span class="level-value target">${formatNumber(t.level, 2)} <small>(${t.rr})</small></span>
-                            </div>
-                        `).join('') || ''}
-                    </div>
-                </div>
-                ` : ''}
 
-                <!-- Alternative Scenario -->
-                ${altSignal ? `
-                <div class="detail-section alt-scenario">
-                    <h5>Escenario Alternativo</h5>
-                    <div class="scenario-info">
-                        <span class="signal-badge ${altSignal.direction?.toLowerCase()}">${altSignal.direction}</span>
-                        <span class="probability">${altSignal.probability}%</span>
+                    <!-- CAPA 2: INVESTMENT CARD -->
+                    <div class="detail-tab-content" id="detail-tab-investment">
+                        ${renderInvestmentCardView(detail)}
                     </div>
-                    ${altSignal.condition ? `<p class="scenario-condition"><strong>Condición:</strong> ${altSignal.condition}</p>` : ''}
-                    <div class="scenario-levels">
-                        <div class="level-row">
-                            <span class="level-label">Entry</span>
-                            <span class="level-value">${formatNumber(altSignal.entry, 2)}</span>
-                        </div>
-                        <div class="level-row">
-                            <span class="level-label">Stop Loss</span>
-                            <span class="level-value stop">${formatNumber(altSignal.stopLoss, 2)}</span>
-                        </div>
-                        ${altSignal.targets?.map((t, i) => `
-                            <div class="level-row">
-                                <span class="level-label">Target ${i + 1}</span>
-                                <span class="level-value target">${formatNumber(t.level, 2)} <small>(${t.rr})</small></span>
-                            </div>
-                        `).join('') || ''}
-                    </div>
-                </div>
-                ` : ''}
 
-                <!-- Swing Analysis -->
-                ${swing ? `
-                <div class="detail-section">
-                    <h5>Análisis de Swing</h5>
-                    <div class="swing-header">
-                        <span class="swing-phase phase-${swing.phase?.toLowerCase().replace('_', '-')}">${swing.phase?.replace('_', ' ')}</span>
-                        <span class="entry-quality quality-${swing.entryQuality?.toLowerCase()}">${swing.entryQuality}</span>
-                    </div>
-                    ${swing.swingMetrics ? `
-                    <div class="swing-metrics">
-                        <div class="metric-item">
-                            <span class="metric-label">Desde Swing Low</span>
-                            <span class="metric-value">${swing.swingMetrics.percentFromSwingLow}%</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Desde Swing High</span>
-                            <span class="metric-value">${swing.swingMetrics.percentFromSwingHigh}%</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Rango Swing</span>
-                            <span class="metric-value">${swing.swingMetrics.swingRange || '--'}</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Posición</span>
-                            <span class="metric-value">${swing.swingMetrics.currentPositionInSwing}</span>
-                        </div>
-                    </div>
-                    ` : ''}
-                    ${swing.phaseIndicators ? `
-                    <div class="phase-indicators">
-                        <div class="phase-ind-item">
-                            <span class="phase-ind-label">Volumen</span>
-                            <span class="phase-ind-value trend-${swing.phaseIndicators.volumeTrend?.toLowerCase()}">${swing.phaseIndicators.volumeTrend}</span>
-                        </div>
-                        <div class="phase-ind-item">
-                            <span class="phase-ind-label">Momentum</span>
-                            <span class="phase-ind-value">${swing.phaseIndicators.momentumStrength}</span>
-                        </div>
-                        <div class="phase-ind-item">
-                            <span class="phase-ind-label">Estructura</span>
-                            <span class="phase-ind-value">${swing.phaseIndicators.priceStructure}</span>
-                        </div>
-                        ${swing.phaseIndicators.divergencePresent ? `
-                        <div class="phase-ind-item divergence-alert">
-                            <span class="phase-ind-label">Divergencia</span>
-                            <span class="phase-ind-value">Detectada</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                    ` : ''}
-                    ${swing.entryRecommendation ? `
-                    <div class="swing-recommendation">
-                        <span class="action-badge action-${swing.entryRecommendation.action?.toLowerCase().replace('_', '-')}">${swing.entryRecommendation.action?.replace('_', ' ')}</span>
-                        <p>${swing.entryRecommendation.reasoning}</p>
-                        ${swing.entryRecommendation.idealEntry || swing.entryRecommendation.stopLoss || swing.entryRecommendation.takeProfit ? `
-                        <div class="swing-entry-levels">
-                            ${swing.entryRecommendation.idealEntry ? `<div class="entry-level"><span>Entrada Ideal:</span> ${formatNumber(swing.entryRecommendation.idealEntry, 2)}</div>` : ''}
-                            ${swing.entryRecommendation.stopLoss ? `<div class="entry-level stop"><span>Stop Loss:</span> ${formatNumber(swing.entryRecommendation.stopLoss, 2)}</div>` : ''}
-                            ${swing.entryRecommendation.takeProfit ? `<div class="entry-level target"><span>Take Profit:</span> ${formatNumber(swing.entryRecommendation.takeProfit, 2)}</div>` : ''}
-                            ${swing.entryRecommendation.riskRewardRatio ? `<div class="entry-level rr"><span>R:R Ratio:</span> ${swing.entryRecommendation.riskRewardRatio}</div>` : ''}
-                        </div>
-                        ` : ''}
-                    </div>
-                    ` : ''}
-                </div>
-                ` : ''}
-
-                <!-- Trend -->
-                ${trend ? `
-                <div class="detail-section">
-                    <h5>Tendencia</h5>
-                    ${trend.multiTimeframe ? `
-                    <div class="mtf-grid">
-                        <div class="mtf-item">
-                            <span class="mtf-label">Superior</span>
-                            <span class="mtf-value trend-${trend.multiTimeframe.superior?.toLowerCase()}">${trend.multiTimeframe.superior}</span>
-                        </div>
-                        <div class="mtf-item">
-                            <span class="mtf-label">Actual</span>
-                            <span class="mtf-value trend-${trend.multiTimeframe.actual?.toLowerCase()}">${trend.multiTimeframe.actual}</span>
-                        </div>
-                        <div class="mtf-item">
-                            <span class="mtf-label">Inferior</span>
-                            <span class="mtf-value trend-${trend.multiTimeframe.inferior?.toLowerCase()}">${trend.multiTimeframe.inferior}</span>
-                        </div>
-                    </div>
-                    <p class="confluence-text">${trend.multiTimeframe.confluence}</p>
-                    ` : ''}
-                    ${trend.emas ? `
-                    <div class="emas-grid">
-                        <div class="ema-item"><span>EMA9</span><span>${formatNumber(trend.emas.ema9?.value, 2)}</span><small>${trend.emas.ema9?.distance}%</small></div>
-                        <div class="ema-item"><span>EMA21</span><span>${formatNumber(trend.emas.ema21?.value, 2)}</span><small>${trend.emas.ema21?.distance}%</small></div>
-                        <div class="ema-item"><span>EMA50</span><span>${formatNumber(trend.emas.ema50?.value, 2)}</span><small>${trend.emas.ema50?.distance}%</small></div>
-                        <div class="ema-item"><span>EMA200</span><span>${formatNumber(trend.emas.ema200?.value, 2)}</span><small>${trend.emas.ema200?.distance}%</small></div>
-                    </div>
-                    <p class="ema-alignment">${trend.emas.alignment} - ${trend.emas.pricePosition}</p>
-                    ` : ''}
-                </div>
-                ` : ''}
-
-                <!-- Indicators -->
-                ${indicators ? `
-                <div class="detail-section">
-                    <h5>Indicadores</h5>
-                    <div class="indicators-full-grid">
-                        ${indicators.momentum ? `
-                        <div class="indicator-card">
-                            <span class="ind-title">Momentum</span>
-                            <div class="ind-row"><span>RSI</span><span class="${this.getRsiClass(indicators.momentum.rsi)}">${formatNumber(indicators.momentum.rsi, 1)}</span></div>
-                            <div class="ind-row"><span>ADX</span><span>${formatNumber(indicators.momentum.adx, 1)}</span></div>
-                            <div class="ind-row"><span>ATR</span><span>${formatNumber(indicators.momentum.atr, 2)} (${indicators.momentum.atrPercent}%)</span></div>
-                            <div class="ind-row"><span>Fuerza</span><span>${indicators.momentum.trendStrength}</span></div>
-                        </div>
-                        ` : ''}
-                        ${indicators.macd ? `
-                        <div class="indicator-card">
-                            <span class="ind-title">MACD</span>
-                            <div class="ind-row"><span>Línea</span><span>${formatNumber(indicators.macd.line, 2)}</span></div>
-                            <div class="ind-row"><span>Señal</span><span>${formatNumber(indicators.macd.signal, 2)}</span></div>
-                            <div class="ind-row"><span>Histograma</span><span class="${indicators.macd.histogram >= 0 ? 'bullish' : 'bearish'}">${formatNumber(indicators.macd.histogram, 2)}</span></div>
-                            <div class="ind-row"><span>Tendencia</span><span>${indicators.macd.trend}</span></div>
-                        </div>
-                        ` : ''}
-                        ${indicators.bollingerBands ? `
-                        <div class="indicator-card">
-                            <span class="ind-title">Bollinger Bands</span>
-                            <div class="ind-row"><span>Superior</span><span>${formatNumber(indicators.bollingerBands.upper, 2)}</span></div>
-                            <div class="ind-row"><span>Media</span><span>${formatNumber(indicators.bollingerBands.middle, 2)}</span></div>
-                            <div class="ind-row"><span>Inferior</span><span>${formatNumber(indicators.bollingerBands.lower, 2)}</span></div>
-                            <div class="ind-row"><span>Posición</span><span>${indicators.bollingerBands.position}%</span></div>
-                            ${indicators.bollingerBands.signal ? `<div class="ind-row"><span>Señal</span><span>${indicators.bollingerBands.signal}</span></div>` : ''}
-                        </div>
-                        ` : ''}
-                        ${indicators.srsi ? `
-                        <div class="indicator-card">
-                            <span class="ind-title">Stochastic RSI</span>
-                            <div class="ind-row"><span>%K</span><span>${formatNumber(indicators.srsi.k, 1)}</span></div>
-                            <div class="ind-row"><span>%D</span><span>${formatNumber(indicators.srsi.d, 1)}</span></div>
-                            <div class="ind-row"><span>RSI Base</span><span>${formatNumber(indicators.srsi.rsiBase, 1)}</span></div>
-                            <div class="ind-row"><span>Señal</span><span>${indicators.srsi.signal}</span></div>
-                        </div>
-                        ` : ''}
-                        ${indicators.volume ? `
-                        <div class="indicator-card">
-                            <span class="ind-title">Volumen</span>
-                            <div class="ind-row"><span>Actual</span><span>${this.formatVolume(indicators.volume.current)}</span></div>
-                            <div class="ind-row"><span>Promedio</span><span>${this.formatVolume(indicators.volume.average)}</span></div>
-                            <div class="ind-row"><span>Ratio</span><span>${indicators.volume.ratio}x</span></div>
-                            ${indicators.volume.obv ? `<div class="ind-row"><span>OBV</span><span>${this.formatVolume(indicators.volume.obv)}</span></div>` : ''}
-                            <div class="ind-row"><span>Señal</span><span>${indicators.volume.signal}</span></div>
-                        </div>
-                        ` : ''}
+                    <!-- CAPA 3: TECHNICAL -->
+                    <div class="detail-tab-content" id="detail-tab-technical">
+                        ${renderTechnicalView(detail)}
                     </div>
                 </div>
-                ` : ''}
-
-                <!-- Levels -->
-                ${levels ? `
-                <div class="detail-section">
-                    <h5>Niveles Clave</h5>
-                    <div class="levels-grid">
-                        <div class="levels-column">
-                            <span class="levels-title resistances">Resistencias</span>
-                            ${levels.resistances?.map(r => `
-                                <div class="level-item resistance">
-                                    <span class="level-price">${formatNumber(r.level, 2)}</span>
-                                    <span class="level-type">${r.type}</span>
-                                    <span class="level-strength strength-${r.strength?.toLowerCase()}">${r.strength}</span>
-                                </div>
-                            `).join('') || '<p class="no-levels">Sin resistencias</p>'}
-                        </div>
-                        <div class="levels-column">
-                            <span class="levels-title supports">Soportes</span>
-                            ${levels.supports?.map(s => `
-                                <div class="level-item support">
-                                    <span class="level-price">${formatNumber(s.level, 2)}</span>
-                                    <span class="level-type">${s.type}</span>
-                                    <span class="level-strength strength-${s.strength?.toLowerCase()}">${s.strength}</span>
-                                </div>
-                            `).join('') || '<p class="no-levels">Sin soportes</p>'}
-                        </div>
-                    </div>
-                    ${levels.pivots ? `
-                    <div class="pivots-row">
-                        <span>S2: ${formatNumber(levels.pivots.s2, 2)}</span>
-                        <span>S1: ${formatNumber(levels.pivots.s1, 2)}</span>
-                        <span class="pivot-main">P: ${formatNumber(levels.pivots.pivot, 2)}</span>
-                        <span>R1: ${formatNumber(levels.pivots.r1, 2)}</span>
-                        <span>R2: ${formatNumber(levels.pivots.r2, 2)}</span>
-                    </div>
-                    ` : ''}
-                </div>
-                ` : ''}
-
-                <!-- Patterns -->
-                ${patterns ? `
-                <div class="detail-section">
-                    <h5>Patrones</h5>
-                    ${patterns.candlePattern ? `<div class="pattern-item"><span class="pattern-label">Vela:</span> ${patterns.candlePattern}</div>` : ''}
-                    ${patterns.chartPatterns?.length ? `
-                    <div class="pattern-list">
-                        <span class="pattern-label">Chart:</span>
-                        ${patterns.chartPatterns.map(p => `<span class="pattern-tag">${p}</span>`).join('')}
-                    </div>
-                    ` : ''}
-                    ${patterns.keyObservations?.length ? `
-                    <div class="observations-list">
-                        <span class="pattern-label">Observaciones:</span>
-                        <ul>
-                            ${patterns.keyObservations.map(o => `<li>${o}</li>`).join('')}
-                        </ul>
-                    </div>
-                    ` : ''}
-                </div>
-                ` : ''}
-
-                <!-- Correlations -->
-                ${correlations ? `
-                <div class="detail-section">
-                    <h5>Correlaciones</h5>
-                    <div class="correlations-grid">
-                        ${correlations.dxy ? `
-                        <div class="corr-item">
-                            <span class="corr-name">DXY</span>
-                            <span class="corr-value">${correlations.dxy.value}</span>
-                            <span class="corr-trend trend-${correlations.dxy.trend?.toLowerCase()}">${correlations.dxy.trend}</span>
-                            <span class="corr-impact impact-${correlations.dxy.impact?.toLowerCase()}">${correlations.dxy.impact}</span>
-                        </div>
-                        ` : ''}
-                        ${correlations.yields10y ? `
-                        <div class="corr-item">
-                            <span class="corr-name">10Y Yields</span>
-                            <span class="corr-value">${correlations.yields10y.value}%</span>
-                            <span class="corr-trend trend-${correlations.yields10y.trend?.toLowerCase()}">${correlations.yields10y.trend}</span>
-                            <span class="corr-impact impact-${correlations.yields10y.impact?.toLowerCase()}">${correlations.yields10y.impact}</span>
-                        </div>
-                        ` : ''}
-                        ${correlations.vix ? `
-                        <div class="corr-item">
-                            <span class="corr-name">VIX</span>
-                            <span class="corr-value">${correlations.vix.value}</span>
-                            <span class="corr-trend trend-${correlations.vix.trend?.toLowerCase()}">${correlations.vix.trend}</span>
-                            <span class="corr-impact impact-${correlations.vix.impact?.toLowerCase()}">${correlations.vix.impact}</span>
-                        </div>
-                        ` : ''}
-                        ${correlations.other ? `
-                        <div class="corr-item">
-                            <span class="corr-name">${correlations.other.name}</span>
-                            <span class="corr-value">${correlations.other.value}</span>
-                            <span class="corr-trend trend-${correlations.other.trend?.toLowerCase()}">${correlations.other.trend}</span>
-                            <span class="corr-impact impact-${correlations.other.impact?.toLowerCase()}">${correlations.other.impact}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                    ${correlations.macroEnvironment ? `<p class="macro-env">${correlations.macroEnvironment}</p>` : ''}
-                </div>
-                ` : ''}
-
-                <!-- Fear & Greed / Geopolitical Context -->
-                ${fearGreed || geopolitical ? `
-                <div class="detail-section">
-                    <h5>Contexto de Mercado</h5>
-                    <div class="context-grid">
-                        ${fearGreed ? `
-                        <div class="context-card">
-                            <span class="context-title">Fear & Greed</span>
-                            <div class="fg-values">
-                                <div class="fg-item">
-                                    <span>Stocks</span>
-                                    <span class="fg-value fg-${this.getFearGreedLevel(fearGreed.stockValue)}">${fearGreed.stockValue} - ${fearGreed.stockLabel}</span>
-                                </div>
-                                <div class="fg-item">
-                                    <span>Crypto</span>
-                                    <span class="fg-value fg-${this.getFearGreedLevel(fearGreed.cryptoValue)}">${fearGreed.cryptoValue} - ${fearGreed.cryptoLabel}</span>
-                                </div>
-                            </div>
-                            ${fearGreed.divergenceDetected ? `<p class="fg-divergence">${fearGreed.divergenceDescription}</p>` : ''}
-                            <span class="sentiment-impact impact-${fearGreed.sentimentImpact?.toLowerCase()}">${fearGreed.sentimentImpact}</span>
-                        </div>
-                        ` : ''}
-                        ${geopolitical ? `
-                        <div class="context-card">
-                            <span class="context-title">Geopolítico</span>
-                            <div class="defcon-display defcon-${geopolitical.defconLevel}">
-                                <span class="defcon-level">DEFCON ${geopolitical.defconLevel}</span>
-                                <span class="defcon-status">${geopolitical.defconStatus}</span>
-                            </div>
-                            ${geopolitical.riskClassification ? `<span class="risk-classification">${geopolitical.riskClassification}</span>` : ''}
-                            <p class="geo-assessment">${geopolitical.riskAssessment}</p>
-                            <div class="geo-footer">
-                                <span class="geo-impact impact-${geopolitical.geopoliticalImpact?.toLowerCase()}">${geopolitical.geopoliticalImpact}</span>
-                                ${geopolitical.confluentWithTechnicals !== undefined ? `
-                                <span class="geo-confluence ${geopolitical.confluentWithTechnicals ? 'confluent' : 'divergent'}">
-                                    ${geopolitical.confluentWithTechnicals ? '<i data-lucide="check" style="width:12px;height:12px;margin-right:2px;vertical-align:middle;"></i>Confluente' : '<i data-lucide="x" style="width:12px;height:12px;margin-right:2px;vertical-align:middle;"></i>Divergente'}
-                                </span>
-                                ` : ''}
-                            </div>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-                ` : ''}
-
-                <!-- Risk Management -->
-                ${risk ? `
-                <div class="detail-section risk-section">
-                    <h5>Gestión de Riesgo</h5>
-                    ${risk.positionSize ? `<div class="risk-item"><strong>Tamaño de posición:</strong> ${risk.positionSize}</div>` : ''}
-                    ${risk.invalidationLong ? `<div class="risk-item invalidation"><strong>Invalidación Long:</strong> ${risk.invalidationLong}</div>` : ''}
-                    ${risk.invalidationShort ? `<div class="risk-item invalidation"><strong>Invalidación Short:</strong> ${risk.invalidationShort}</div>` : ''}
-                    ${risk.specialRisks?.length ? `
-                    <div class="special-risks">
-                        <strong>Riesgos especiales:</strong>
-                        <ul>
-                            ${risk.specialRisks.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
-                    </div>
-                    ` : ''}
-                </div>
-                ` : ''}
-
-                <!-- Analysis Confidence -->
-                ${detail.analysis ? `
-                <div class="detail-section">
-                    <h5>Análisis</h5>
-                    <div class="analysis-summary">
-                        <div class="confidence-display">
-                            <span class="confidence-label">Confianza</span>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" style="width: ${detail.analysis.confidence}%"></div>
-                            </div>
-                            <span class="confidence-value">${detail.analysis.confidence}%</span>
-                        </div>
-                        <div class="bias-display">
-                            <span>Bias:</span>
-                            <span class="bias-value bias-${detail.analysis.bias?.toLowerCase()}">${detail.analysis.bias}</span>
-                        </div>
-                        ${detail.analysis.confluenceScore ? `
-                        <div class="confluence-display">
-                            <span class="conf-bullish">Bullish: ${detail.analysis.confluenceScore.bullish}</span>
-                            <span class="conf-bearish">Bearish: ${detail.analysis.confluenceScore.bearish}</span>
-                            ${detail.analysis.confluenceScore.total !== undefined ? `<span class="conf-total">Total: ${detail.analysis.confluenceScore.total}</span>` : ''}
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-                ` : ''}
-
-                <!-- Targets Achieved -->
-                ${detail.targetsAchieved ? `
-                <div class="detail-section">
-                    <h5>Progreso de Targets</h5>
-                    <div class="targets-progress">
-                        <div class="targets-bar">
-                            <div class="targets-fill" style="width: ${detail.targetsAchieved.percentage}%"></div>
-                        </div>
-                        <span>${detail.targetsAchieved.count} / ${detail.targetsAchieved.total} targets alcanzados</span>
-                    </div>
-                </div>
-                ` : ''}
-
-                <!-- Tracking Info -->
-                ${detail.tracking ? `
-                <div class="detail-section tracking-section">
-                    <h5>Seguimiento en Tiempo Real</h5>
-                    <div class="tracking-info">
-                        <div class="tracking-row">
-                            <span class="tracking-label">Precio Actual</span>
-                            <span class="tracking-value">${formatNumber(detail.tracking.currentPrice, 2)}</span>
-                        </div>
-                        ${detail.tracking.currentVolume ? `
-                        <div class="tracking-row">
-                            <span class="tracking-label">Volumen Actual</span>
-                            <span class="tracking-value">${this.formatVolume(detail.tracking.currentVolume)}</span>
-                        </div>
-                        ` : ''}
-                        <div class="tracking-row">
-                            <span class="tracking-label">Actualizaciones</span>
-                            <span class="tracking-value">${detail.tracking.updateCount || 0}</span>
-                        </div>
-                        <div class="tracking-row">
-                            <span class="tracking-label">Última Actualización</span>
-                            <span class="tracking-value">${detail.tracking.lastUpdate ? formatRelativeTime(new Date(detail.tracking.lastUpdate).toISOString()) : '--'}</span>
-                        </div>
-                    </div>
-                </div>
-                ` : ''}
 
                 <!-- Metadata -->
                 <div class="detail-footer">
@@ -1197,6 +773,37 @@ class DashboardApp {
 
         // Setup ask question handlers
         this.setupAskQuestionHandlers(detail._id);
+
+        // Setup tab switching for detail tabs
+        this.setupDetailTabSwitching();
+    }
+
+    setupDetailTabSwitching() {
+        const tabButtons = document.querySelectorAll('.detail-tab-btn');
+        const tabContents = document.querySelectorAll('.detail-tab-content');
+
+        console.log('[KTI] Setup detail tabs - buttons:', tabButtons.length, 'contents:', tabContents.length);
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.detailTab;
+                console.log('[KTI] Tab clicked:', tabId);
+
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                const targetContent = document.getElementById(`detail-tab-${tabId}`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                    console.log('[KTI] Tab activated:', tabId);
+                } else {
+                    console.warn('[KTI] Tab content not found:', `detail-tab-${tabId}`);
+                }
+            });
+        });
     }
 
     // Helper methods for report detail
