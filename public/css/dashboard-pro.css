@@ -886,6 +886,7 @@
   :root {
     --ticker-height: 36px;
     --status-height: 28px;
+    --details-width: 100vw;
   }
 
   .ticker-item {
@@ -895,6 +896,122 @@
 
   .top-movers {
     grid-template-columns: 1fr;
+  }
+
+  /* Ensure panel-details takes full width on mobile */
+  .panel-details {
+    width: 100vw !important;
+    max-width: 100vw;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* Ensure all panel content respects mobile viewport */
+  .panel {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .panel-content {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Make detail sections mobile-friendly */
+  .detail-section {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  /* Adjust modal for mobile */
+  .modal {
+    width: 95%;
+    max-width: 95vw;
+    max-height: 90vh;
+  }
+
+  .modal-body {
+    padding: 12px;
+  }
+
+  /* Make buttons stack on mobile */
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .btn-action {
+    width: 100%;
+  }
+
+  /* Mobile-friendly reports list */
+  .reports-header {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .symbol-emoji {
+    font-size: 1.5rem;
+  }
+
+  .report-item {
+    padding: 10px 12px;
+  }
+
+  .report-main {
+    gap: 8px;
+  }
+
+  .report-timeframe {
+    min-width: 36px;
+    font-size: 0.6875rem;
+  }
+
+  .report-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .report-date {
+    font-size: 0.75rem;
+  }
+
+  /* Mobile-friendly back button */
+  .btn-back {
+    padding: 10px 12px;
+  }
+
+  /* Adjust analysis rows for mobile */
+  .analysis-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  /* Make confidence badges more compact */
+  .confidence-badge,
+  .signal-badge {
+    font-size: 0.625rem;
+    padding: 2px 6px;
+  }
+
+  /* Adjust level rows for mobile */
+  .level-row {
+    font-size: 0.6875rem;
+  }
+
+  /* Mobile-friendly scenario info */
+  .scenario-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Adjust tracking section for mobile */
+  .tracking-info {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 
