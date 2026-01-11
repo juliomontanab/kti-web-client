@@ -21,101 +21,64 @@ export class QuotesTable {
     }
 
     updatePrice(wsSymbol, priceData) {
-        console.log('[QuotesTable] ======== updatePrice START ========');
-        console.log('[QuotesTable] wsSymbol recibido:', wsSymbol);
-        console.log('[QuotesTable] wsSymbol type:', typeof wsSymbol);
-        console.log('[QuotesTable] wsSymbol length:', wsSymbol.length);
+        const row = this.tbody.querySelector(`.quote-row[data-ws-symbol="${wsSymbol}"]`);
+        if (!row) return;
 
-        // DEBUG: Log all available wsSymbols in table con detalles
-        const allRows = Array.from(this.tbody.querySelectorAll('.quote-row'));
-        console.log('[QuotesTable] Total rows in table:', allRows.length);
-
-        allRows.forEach((row, index) => {
-            const wsSymbolAttr = row.dataset.wsSymbol;
-            const code = row.dataset.code;
-            console.log(`[QuotesTable] Row ${index}: code="${code}", wsSymbol="${wsSymbolAttr}", type=${typeof wsSymbolAttr}, length=${wsSymbolAttr?.length}`);
-        });
-
-        // Buscar por data-ws-symbol que contiene el símbolo del WebSocket (GOLD, BTCUSD, etc.)
-        const selector = `.quote-row[data-ws-symbol="${wsSymbol}"]`;
-        console.log('[QuotesTable] Selector usado:', selector);
-
-        const row = this.tbody.querySelector(selector);
-        console.log('[QuotesTable] Row encontrado:', row ? 'SI' : 'NO');
-
-        if (!row) {
-            console.log('[QuotesTable] NO ROW FOUND for wsSymbol:', wsSymbol);
-            console.log('[QuotesTable] ======== updatePrice END (NO MATCH) ========');
-            return;
-        }
         const code = row.dataset.code;
-
         const priceCell = row.querySelector('.col-price');
         const changeCell = row.querySelector('.col-change');
+        if (!priceCell || !changeCell) return;
 
-        // Get current values from DOM (trim to remove whitespace)
-        const currentPriceText = priceCell ? priceCell.textContent.trim().replace(/,/g, '') : '';
-        const currentChangeText = changeCell ? changeCell.textContent.trim() : '';
+        // Get current values from DOM
+        const currentPriceText = priceCell.textContent.trim();
+        const currentChangeText = changeCell.textContent.trim();
+
+        // Check if this is first render (empty or placeholder)
+        const isFirstRender = !currentPriceText || currentPriceText === '--' || !currentChangeText || currentChangeText === '--';
 
         // Format new values
         const newPriceFormatted = formatNumber(priceData.price, 2);
         const newChangeFormatted = formatPercent(priceData.changePercent);
 
-        console.log('[QuotesTable] updatePrice:', {
-            wsSymbol,
-            code,
-            currentPriceText,
-            currentChangeText,
-            newPriceFormatted,
-            newChangeFormatted
-        });
+        // Compare formatted strings (what user sees) instead of numbers
+        const priceChanged = currentPriceText !== newPriceFormatted;
+        const changeChanged = currentChangeText !== newChangeFormatted;
 
-        // Only update if values actually changed (compare formatted strings)
-        // Empty current value means first render, so update
-        let hasChanged = false;
-
-        if (priceCell) {
-            // Compare numeric values, not formatted strings
-            const currentPrice = parseFloat(currentPriceText.replace(/,/g, ''));
-            const newPrice = priceData.price;
-
-            // Update if: empty, placeholder '--', or different numeric value
-            if (!currentPriceText || currentPriceText === '--' || currentPrice !== newPrice) {
-                console.log('[QuotesTable] Updating price:', currentPrice, '->', newPrice);
-                priceCell.textContent = newPriceFormatted;
-                hasChanged = true;
-            } else {
-                console.log('[QuotesTable] Price unchanged:', currentPrice, '===', newPrice);
-            }
+        // Debug logging for the 3 instruments that are blinking
+        if (['GOLD', 'SILVER', 'COPPER'].includes(wsSymbol)) {
+            console.log(`[${wsSymbol}] Current: "${currentPriceText}" / "${currentChangeText}"`);
+            console.log(`[${wsSymbol}] New: "${newPriceFormatted}" / "${newChangeFormatted}"`);
+            console.log(`[${wsSymbol}] Changed? price=${priceChanged}, change=${changeChanged}`);
         }
 
-        if (changeCell) {
-            // Compare numeric values for change percent
-            const currentChangePercent = parseFloat(currentChangeText.replace(/[%+\s]/g, ''));
-            const newChangePercent = priceData.changePercent;
+        // Update if first render OR if formatted values changed
+        if (isFirstRender) {
+            // First render: just update, no animation
+            priceCell.textContent = newPriceFormatted;
+            changeCell.textContent = newChangeFormatted;
+            changeCell.classList.remove('bullish', 'bearish');
+            changeCell.classList.add(getChangeClass(priceData.changePercent));
+        } else if (priceChanged || changeChanged) {
+            // Subsequent update with actual change: update with animation
+            console.log(`[${wsSymbol}] ANIMATING - values changed`);
+            priceCell.textContent = newPriceFormatted;
+            changeCell.textContent = newChangeFormatted;
+            changeCell.classList.remove('bullish', 'bearish');
+            changeCell.classList.add(getChangeClass(priceData.changePercent));
 
-            // Update if: empty, placeholder '--', or different numeric value
-            if (!currentChangeText || currentChangeText === '--' || currentChangePercent !== newChangePercent) {
-                console.log('[QuotesTable] Updating change:', currentChangePercent, '->', newChangePercent);
-                changeCell.textContent = newChangeFormatted;
-                changeCell.classList.remove('bullish', 'bearish');
-                changeCell.classList.add(getChangeClass(priceData.changePercent));
-                hasChanged = true;
-            } else {
-                console.log('[QuotesTable] Change unchanged:', currentChangePercent, '===', newChangePercent);
-            }
+            // Apply flash animation and remove it after completion
+            row.style.animation = 'none';
+            row.offsetHeight;
+            row.style.animation = priceData.changePercent >= 0 ? 'priceFlash 0.3s ease' : 'priceFlashDown 0.3s ease';
+
+            // Remove animation style after it completes to prevent re-triggering
+            setTimeout(() => {
+                row.style.animation = '';
+            }, 300);
         }
 
-        // Only apply flash animation if something changed AND it's not the first update
-        if (hasChanged) {
-            // Only animate if there was a previous value (not first load)
-            if (currentPriceText && currentChangeText && currentPriceText !== '--' && currentChangeText !== '--') {
-                row.style.animation = 'none';
-                row.offsetHeight;
-                row.style.animation = priceData.changePercent >= 0 ? 'priceFlash 0.3s ease' : 'priceFlashDown 0.3s ease';
-            }
-
-            // Update data
+        // Update internal data if changed
+        if (!isFirstRender && (priceChanged || changeChanged)) {
             const item = this.data.find(d => d.code === code);
             if (item) {
                 item.price = priceData.price;
