@@ -8,10 +8,23 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(compression());
 app.use(express.json());
+
+// New dashboard (default) - must be before static middleware
+app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'dashboard.html')); });
+app.get('/dashboard', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'dashboard.html')); });
+
+// Legacy app
+app.get('/legacy', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'index.html')); });
+
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'index.html')); });
+// SPA fallback
+app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'dashboard.html')); });
 
-app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'index.html')); });
-
-app.listen(PORT, () => { console.log(`🚀 Trading PWA ejecutándose en http://localhost:${PORT}`); console.log(`📊 Presiona Ctrl+C para detener el servidor`); });
+app.listen(PORT, () => {
+    console.log(`🚀 KTI Dashboard ejecutándose en http://localhost:${PORT}`);
+    console.log(`📊 Dashboard Pro: http://localhost:${PORT}/`);
+    console.log(`📱 App Legacy: http://localhost:${PORT}/legacy`);
+    console.log(`Presiona Ctrl+C para detener el servidor`);
+});
