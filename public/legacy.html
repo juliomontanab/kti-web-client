@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta
+      name="description"
+      content="Análisis técnico profesional de trading"
+    />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" href="icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>KTI - Smart Trading Analysis</title>
+  </head>
+  <body>
+    <!-- Splash Screen -->
+    <div id="splash">
+      <div class="splash-logo">
+        <div class="splash-letters">
+          <div class="splash-letter">K</div>
+          <div class="splash-letter">T</div>
+          <div class="splash-letter">I</div>
+        </div>
+        <div class="splash-subtitle">
+          Smart Trading Analysis Supported by AI & Big Data
+        </div>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-k">K</span><span class="logo-t">T</span
+          ><span class="logo-i">I</span>
+          <span style="color: rgba(255, 255, 255, 0.7); margin-left: 0.5rem"
+            >Smart Trading Analysis</span
+          >
+        </div>
+        <button class="back-btn" onclick="goBack()"><i data-lucide="arrow-left" style="width:16px;height:16px;margin-right:4px;vertical-align:middle;"></i>Volver</button>
+      </div>
+    </div>
+
+    <!-- Types View -->
+    <div class="types-view" id="typesView">
+      <div class="types-header">
+        <h1>Categorías de Instrumentos</h1>
+        <p>
+          Selecciona una categoría para explorar los instrumentos disponibles
+        </p>
+      </div>
+      <div id="typesGrid" class="types-grid">
+        <div class="spinner"></div>
+      </div>
+
+      <br />
+
+      <!-- Market Indexes Widget -->
+      <div class="market-sentiment-header">
+        <h1>Sentimiento y Alertas de Mercado</h1>
+        <p>
+          Mantente informado sobre el estado actual del mercado con nuestros
+          índices clave
+        </p>
+      </div>
+      <div
+        class="market-indexes-widget"
+        id="marketIndexesWidget"
+        style="display: none"
+      >
+        <div class="market-indexes-container">
+          <!--div class="market-indexes-title">📊 Índices de Mercado</div-->
+          <div id="marketIndexesContent" class="indexes-grid">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Symbols View -->
+    <div class="symbols-view" id="symbolsView">
+      <div id="symbolsHeader" class="symbols-header"></div>
+      <div id="symbolsGrid" class="symbols-grid"></div>
+    </div>
+
+    <!-- Results View -->
+    <div class="results-view" id="resultsView">
+      <div id="resultsHeader" class="results-header"></div>
+      <div id="resultsGrid" class="results-grid"></div>
+    </div>
+
+    <!-- Detail View -->
+    <div class="detail-view" id="detailView">
+      <div id="detailContent" class="detail-container"></div>
+    </div>
+
+    <div class="footer">
+      <p>KTI - Smart Trading Analysis System by Jmontana © 2026</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="legacy-app.js"></script>
+    <script>
+      // Inicializar Lucide Icons
+      lucide.createIcons();
+      // Re-inicializar cuando se actualice el DOM dinámicamente
+      window.refreshLucideIcons = () => lucide.createIcons();
+    </script>
+  </body>
+</html>

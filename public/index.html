@@ -3,104 +3,365 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1a1a2e" />
-    <meta
-      name="description"
-      content="Análisis técnico profesional de trading"
-    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="description" content="KTI - Professional Trading Dashboard" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" href="icon-192.png" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard-pro.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
-    <title>KTI - Smart Trading Analysis</title>
+    <title>KTI - Professional Trading Dashboard</title>
   </head>
-  <body>
+  <body class="dashboard-pro">
     <!-- Splash Screen -->
-    <div id="splash">
-      <div class="splash-logo">
+    <div id="splash" class="splash-screen">
+      <div class="splash-content">
         <div class="splash-letters">
-          <div class="splash-letter">K</div>
-          <div class="splash-letter">T</div>
-          <div class="splash-letter">I</div>
+          <span class="letter letter-k">K</span>
+          <span class="letter letter-t">T</span>
+          <span class="letter letter-i">I</span>
         </div>
-        <div class="splash-subtitle">
-          Smart Trading Analysis Supported by AI & Big Data
-        </div>
+        <div class="splash-subtitle">Professional Trading Dashboard</div>
       </div>
     </div>
 
-    <div class="header">
-      <div class="header-content">
-        <div class="logo">
-          <span class="logo-k">K</span><span class="logo-t">T</span
-          ><span class="logo-i">I</span>
-          <span style="color: rgba(255, 255, 255, 0.7); margin-left: 0.5rem"
-            >Smart Trading Analysis</span
-          >
+    <!-- Ticker Tape -->
+    <header class="ticker-tape-container" id="ticker-tape-container">
+      <div class="ticker-track" id="ticker-track">
+        <div class="ticker-content" id="ticker-content">
+          <!-- Ticker items populated by JS -->
         </div>
-        <button class="back-btn" onclick="goBack()"><i data-lucide="arrow-left" style="width:16px;height:16px;margin-right:4px;vertical-align:middle;"></i>Volver</button>
+        <div class="ticker-content" id="ticker-content-duplicate">
+          <!-- Duplicate for seamless loop -->
+        </div>
       </div>
-    </div>
+    </header>
 
-    <!-- Types View -->
-    <div class="types-view" id="typesView">
-      <div class="types-header">
-        <h1>Categorías de Instrumentos</h1>
-        <p>
-          Selecciona una categoría para explorar los instrumentos disponibles
-        </p>
-      </div>
-      <div id="typesGrid" class="types-grid">
-        <div class="spinner"></div>
-      </div>
+    <!-- Main Dashboard Grid -->
+    <main class="dashboard-grid" id="dashboard-grid">
+      <!-- Left Panel: Watchlist -->
+      <aside class="panel panel-watchlist" id="watchlist-panel">
+        <div class="panel-header">
+          <h3><i data-lucide="star" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;"></i>Watchlist</h3>
+          <button class="btn-icon" id="btn-add-watchlist" title="Add Symbol"><i data-lucide="plus" style="width:16px;height:16px;"></i></button>
+        </div>
+        <div class="panel-content" id="watchlist-content">
+          <!-- Watchlist items populated by JS -->
+          <div class="empty-state" id="watchlist-empty">
+            <p>No symbols in watchlist</p>
+            <button class="btn-primary" id="btn-browse-symbols">Browse Symbols</button>
+          </div>
+        </div>
+      </aside>
 
-      <br />
+      <!-- Center Panel: Main Content -->
+      <section class="panel panel-main" id="main-panel">
+        <!-- Tabs Navigation -->
+        <nav class="panel-tabs" id="main-tabs">
+          <button class="tab-btn active" data-tab="overview"><i data-lucide="layout-dashboard" style="width:14px;height:14px;margin-right:4px;"></i>Overview</button>
+          <button class="tab-btn" data-tab="screener"><i data-lucide="scan-search" style="width:14px;height:14px;margin-right:4px;"></i>Screener</button>
+          <button class="tab-btn" data-tab="heatmap"><i data-lucide="grid-3x3" style="width:14px;height:14px;margin-right:4px;"></i>Heat Map</button>
+          <button class="tab-btn" data-tab="alerts"><i data-lucide="bell" style="width:14px;height:14px;margin-right:4px;"></i>Alerts</button>
+        </nav>
 
-      <!-- Market Indexes Widget -->
-      <div class="market-sentiment-header">
-        <h1>Sentimiento y Alertas de Mercado</h1>
-        <p>
-          Mantente informado sobre el estado actual del mercado con nuestros
-          índices clave
-        </p>
+        <!-- Tab Content -->
+        <div class="panel-content" id="main-content">
+          <!-- Overview Tab -->
+          <div class="tab-content active" id="tab-overview">
+            <!-- Market Summary -->
+            <div class="market-summary" id="market-summary">
+              <div class="summary-row">
+                <!-- Fear & Greed Card -->
+                <div class="summary-card summary-card-fg" id="fear-greed-card">
+                  <div class="card-header">
+                    <span class="card-icon"><i data-lucide="gauge" style="width:20px;height:20px;"></i></span>
+                    <span class="card-title">Fear & Greed Index</span>
+                  </div>
+                  <div class="fg-markets">
+                    <div class="fg-market" id="fg-stock">
+                      <span class="fg-market-label">Stock</span>
+                      <span class="fg-market-value" id="fg-stock-value">--</span>
+                      <span class="fg-market-status" id="fg-stock-status">--</span>
+                    </div>
+                    <div class="fg-market" id="fg-crypto">
+                      <span class="fg-market-label">Crypto</span>
+                      <span class="fg-market-value" id="fg-crypto-value">--</span>
+                      <span class="fg-market-status" id="fg-crypto-status">--</span>
+                    </div>
+                  </div>
+                  <div class="fg-divergence" id="fg-divergence" style="display: none;">
+                    <span class="divergence-icon"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#f59e0b;"></i></span>
+                    <span class="divergence-text" id="fg-divergence-text"></span>
+                  </div>
+                </div>
+                <!-- DEFCON Card -->
+                <div class="summary-card summary-card-defcon" id="defcon-card">
+                  <div class="card-header">
+                    <span class="card-icon"><i data-lucide="shield-alert" style="width:20px;height:20px;"></i></span>
+                    <span class="card-title">DEFCON Index</span>
+                  </div>
+                  <div class="defcon-display">
+                    <div class="defcon-level-circle" id="defcon-circle">
+                      <span class="defcon-number" id="defcon-value">--</span>
+                    </div>
+                    <div class="defcon-info">
+                      <div class="defcon-row">
+                        <span class="defcon-label">Estado</span>
+                        <span class="defcon-badge" id="defcon-status">--</span>
+                      </div>
+                      <div class="defcon-row">
+                        <span class="defcon-label">Riesgo</span>
+                        <span class="defcon-badge" id="defcon-risk">--</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="defcon-anomaly" id="defcon-anomaly" style="display: none;">
+                    <span class="anomaly-icon"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#ef4444;"></i></span>
+                    <span class="anomaly-text">Anomalía detectada</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Movers -->
+            <div class="top-movers" id="top-movers">
+              <div class="movers-section gainers">
+                <h4><i data-lucide="trending-up" style="width:16px;height:16px;color:#22c55e;margin-right:6px;"></i>Top Gainers</h4>
+                <div id="gainers-list">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+              <div class="movers-section losers">
+                <h4><i data-lucide="trending-down" style="width:16px;height:16px;color:#ef4444;margin-right:6px;"></i>Top Losers</h4>
+                <div id="losers-list">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Quotes Table -->
+            <div class="quotes-container" id="quotes-container">
+              <table class="quotes-table" id="quotes-table">
+                <thead>
+                  <tr>
+                    <th data-sort="symbol">Symbol</th>
+                    <th data-sort="price">Price</th>
+                    <th data-sort="change">Change</th>
+                    <th data-sort="confidence">Confidence</th>
+                    <th>Sparkline</th>
+                    <th data-sort="signal">Signal</th>
+                  </tr>
+                </thead>
+                <tbody id="quotes-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Screener Tab -->
+          <div class="tab-content" id="tab-screener">
+            <div class="screener" id="screener">
+              <div class="screener-filters" id="screener-filters">
+                <div class="filter-row">
+                  <select id="filter-indicator">
+                    <option value="">Select Indicator</option>
+                    <option value="confidence">Confidence</option>
+                    <option value="rsi">RSI</option>
+                    <option value="adx">ADX</option>
+                    <option value="direction">Direction</option>
+                  </select>
+                  <select id="filter-condition">
+                    <option value="above">Above</option>
+                    <option value="below">Below</option>
+                    <option value="equals">Equals</option>
+                  </select>
+                  <input type="text" id="filter-value" placeholder="Value" />
+                  <button class="btn-icon" id="btn-add-filter"><i data-lucide="plus" style="width:14px;height:14px;"></i></button>
+                </div>
+                <div class="active-filters" id="active-filters">
+                  <!-- Active filter badges -->
+                </div>
+                <button class="btn-scan" id="btn-scan"><i data-lucide="radar" style="width:14px;height:14px;margin-right:4px;"></i>Scan Market</button>
+              </div>
+              <div class="screener-results" id="screener-results">
+                <!-- Results populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Heat Map Tab -->
+          <div class="tab-content" id="tab-heatmap">
+            <div class="heatmap-container" id="heatmap-container">
+              <!-- Heat map populated by JS -->
+            </div>
+          </div>
+
+          <!-- Alerts Tab -->
+          <div class="tab-content" id="tab-alerts">
+            <div class="alerts-panel" id="alerts-panel">
+              <div class="alerts-header">
+                <button class="btn-primary" id="btn-new-alert"><i data-lucide="bell-plus" style="width:14px;height:14px;margin-right:4px;"></i>New Alert</button>
+              </div>
+              <div class="alerts-list" id="alerts-list">
+                <!-- Alerts populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Details -->
+      <aside class="panel panel-details" id="details-panel">
+        <div class="panel-header">
+          <h3 id="details-title"><i data-lucide="info" style="width:16px;height:16px;margin-right:6px;"></i>Details</h3>
+          <button class="btn-icon" id="btn-close-details" title="Close"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+        </div>
+        <div class="panel-content" id="details-content">
+          <!-- Details populated by JS -->
+          <div class="empty-state" id="details-empty">
+            <p>Select a symbol to view details</p>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="status-bar" id="status-bar">
+      <div class="status-connection" id="status-connection">
+        <span class="status-dot" id="ws-status-dot"></span>
+        <span id="ws-status-text">Disconnected</span>
       </div>
-      <div
-        class="market-indexes-widget"
-        id="marketIndexesWidget"
-        style="display: none"
-      >
-        <div class="market-indexes-container">
-          <!--div class="market-indexes-title">📊 Índices de Mercado</div-->
-          <div id="marketIndexesContent" class="indexes-grid">
-            <div class="spinner"></div>
+      <div class="status-alerts" id="status-alerts">
+        <i data-lucide="bell" style="width:12px;height:12px;margin-right:4px;"></i>
+        <span id="active-alerts-count">0 active alerts</span>
+      </div>
+      <div class="status-shortcuts">
+        <i data-lucide="keyboard" style="width:12px;height:12px;margin-right:4px;"></i>
+        <span>Press <kbd>?</kbd> for shortcuts</span>
+      </div>
+      <div class="status-time" id="status-time">
+        <i data-lucide="clock" style="width:12px;height:12px;margin-right:4px;"></i>
+        <span id="market-time">--:--:--</span>
+      </div>
+    </footer>
+
+    <!-- Modal: Add to Watchlist -->
+    <div class="modal-overlay" id="modal-add-watchlist">
+      <div class="modal">
+        <div class="modal-header">
+          <h3><i data-lucide="star" style="width:18px;height:18px;margin-right:8px;"></i>Add Symbol to Watchlist</h3>
+          <button class="modal-close" data-close-modal><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div class="modal-body">
+          <div style="position:relative;">
+            <i data-lucide="search" style="width:16px;height:16px;position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.5;"></i>
+            <input type="text" id="search-symbol" placeholder="Search symbols..." class="search-input" style="padding-left:36px;" />
+          </div>
+          <div class="symbol-search-results" id="symbol-search-results">
+            <!-- Search results -->
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Symbols View -->
-    <div class="symbols-view" id="symbolsView">
-      <div id="symbolsHeader" class="symbols-header"></div>
-      <div id="symbolsGrid" class="symbols-grid"></div>
+    <!-- Modal: Create Alert -->
+    <div class="modal-overlay" id="modal-create-alert">
+      <div class="modal">
+        <div class="modal-header">
+          <h3><i data-lucide="bell-plus" style="width:18px;height:18px;margin-right:8px;"></i>Create Alert</h3>
+          <button class="modal-close" data-close-modal><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Symbol</label>
+            <select id="alert-symbol">
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Alert Type</label>
+            <select id="alert-type">
+              <option value="price">Price</option>
+              <option value="signal">Signal Change</option>
+            </select>
+          </div>
+          <div class="form-group" id="alert-price-group">
+            <label>Condition</label>
+            <select id="alert-condition">
+              <option value="above">Above</option>
+              <option value="below">Below</option>
+            </select>
+            <input type="number" id="alert-price-value" placeholder="Price" />
+          </div>
+          <div class="form-group">
+            <label>Message (optional)</label>
+            <input type="text" id="alert-message" placeholder="Alert message" />
+          </div>
+          <button class="btn-primary" id="btn-create-alert"><i data-lucide="check" style="width:14px;height:14px;margin-right:4px;"></i>Create Alert</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Results View -->
-    <div class="results-view" id="resultsView">
-      <div id="resultsHeader" class="results-header"></div>
-      <div id="resultsGrid" class="results-grid"></div>
+    <!-- Modal: Keyboard Shortcuts -->
+    <div class="modal-overlay" id="modal-shortcuts">
+      <div class="modal">
+        <div class="modal-header">
+          <h3><i data-lucide="keyboard" style="width:18px;height:18px;margin-right:8px;"></i>Keyboard Shortcuts</h3>
+          <button class="modal-close" data-close-modal><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="shortcuts-list">
+            <div class="shortcut-item">
+              <span class="shortcut-key">?</span>
+              <span class="shortcut-desc">Show shortcuts</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">W</span>
+              <span class="shortcut-desc">Toggle watchlist</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">D</span>
+              <span class="shortcut-desc">Toggle details</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">S</span>
+              <span class="shortcut-desc">Focus search</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">1</span>
+              <span class="shortcut-desc">Overview tab</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">2</span>
+              <span class="shortcut-desc">Screener tab</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">3</span>
+              <span class="shortcut-desc">Heat Map tab</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">4</span>
+              <span class="shortcut-desc">Alerts tab</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">C</span>
+              <span class="shortcut-desc">Toggle compact mode</span>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-key">Esc</span>
+              <span class="shortcut-desc">Close modal/panel</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Detail View -->
-    <div class="detail-view" id="detailView">
-      <div id="detailContent" class="detail-container"></div>
-    </div>
-
-    <div class="footer">
-      <p>KTI - Smart Trading Analysis System by Jmontana © 2026</p>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-    <script src="app.js"></script>
+    <!-- Scripts -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
     <script>
       // Inicializar Lucide Icons
       lucide.createIcons();
