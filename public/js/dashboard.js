@@ -372,6 +372,8 @@ class DashboardApp {
         connectWebSocket();
 
         onPriceUpdate((wsSymbol, priceData) => {
+            console.log('[Dashboard] onPriceUpdate recibido - wsSymbol:', wsSymbol, 'priceData:', priceData);
+
             // Update all components with new price (usan data-ws-symbol para el mapeo)
             if (this.tickerTape) this.tickerTape.updatePrice(wsSymbol, priceData);
             if (this.watchlist) this.watchlist.updatePrice(wsSymbol, priceData);
@@ -393,8 +395,13 @@ class DashboardApp {
 
             // Update details if viewing a symbol that matches this wsSymbol
             const selectedData = this.allSymbols.find(s => s.code === this.selectedSymbol);
+            console.log('[Dashboard] Símbolo seleccionado:', this.selectedSymbol, 'selectedData:', selectedData);
+
             if (selectedData && selectedData.wsSymbol === wsSymbol) {
+                console.log('[Dashboard] MATCH! Actualizando precio del panel de detalles');
                 this.updateDetailsPrice(priceData);
+            } else {
+                console.log('[Dashboard] No match - selectedData.wsSymbol:', selectedData?.wsSymbol, 'vs wsSymbol:', wsSymbol);
             }
         });
 
@@ -1096,16 +1103,27 @@ class DashboardApp {
     }
 
     updateDetailsPrice(priceData) {
+        console.log('[Dashboard] updateDetailsPrice llamado con:', priceData);
         const container = document.getElementById('detail-price-container');
-        if (!container) return;
+        if (!container) {
+            console.warn('[Dashboard] detail-price-container NO encontrado en DOM');
+            return;
+        }
 
+        console.log('[Dashboard] detail-price-container encontrado');
         const priceMain = container.querySelector('.price-main');
         const priceChange = container.querySelector('.price-change');
 
-        if (priceMain) priceMain.textContent = formatNumber(priceData.price, 2);
+        console.log('[Dashboard] Elementos encontrados - priceMain:', !!priceMain, 'priceChange:', !!priceChange);
+
+        if (priceMain) {
+            priceMain.textContent = formatNumber(priceData.price, 2);
+            console.log('[Dashboard] Precio actualizado a:', priceMain.textContent);
+        }
         if (priceChange) {
             priceChange.textContent = formatPercent(priceData.changePercent);
             priceChange.className = `price-change ${priceData.changePercent >= 0 ? 'bullish' : 'bearish'}`;
+            console.log('[Dashboard] Cambio actualizado a:', priceChange.textContent);
         }
     }
 
