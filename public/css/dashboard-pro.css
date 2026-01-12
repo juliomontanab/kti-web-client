@@ -373,6 +373,7 @@
 
 .quote-row {
   transition: background 0.15s ease;
+  font-family: var(--font-trading);
 }
 
 .quote-row:hover {
@@ -381,6 +382,25 @@
 
 .quote-row.selected {
   background: rgba(59, 130, 246, 0.1);
+}
+
+/* Section headers for grouped symbols */
+.section-header {
+  background: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+.section-header td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--pro-border);
+}
+
+.section-title {
+  font-family: var(--font-trading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--pro-text-secondary);
+  letter-spacing: 0.05em;
 }
 
 .col-symbol {

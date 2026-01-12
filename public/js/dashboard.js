@@ -221,7 +221,7 @@ class DashboardApp {
 
         // Update Quotes Table
         if (this.quotesTable) {
-            this.quotesTable.setData(this.allSymbols);
+            this.quotesTable.setData(this.allSymbols, this.symbolTypes);
         }
 
         // Update Heat Map

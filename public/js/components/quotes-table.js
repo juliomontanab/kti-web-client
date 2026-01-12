@@ -6,17 +6,22 @@ export class QuotesTable {
         this.container = container;
         this.tbody = container.querySelector('tbody') || container;
         this.data = [];
+        this.symbolTypes = [];
         this.sortColumn = 'symbol';
         this.sortDirection = 'asc';
         this.selectedCode = null;
         this.onSelect = options.onSelect || (() => {});
         this.sparklines = new Map();
 
+        // Orden predefinido de tipos
+        this.typeOrder = ['INDEX', 'STOCK', 'FUTURES', 'CRYPTO', 'FOREX'];
+
         this.bindEvents();
     }
 
-    setData(data) {
+    setData(data, symbolTypes = []) {
         this.data = data;
+        this.symbolTypes = symbolTypes;
         this.render();
     }
 
@@ -113,8 +118,17 @@ export class QuotesTable {
 
     render() {
         const sorted = this.getSortedData();
+        const grouped = this.groupByType(sorted);
 
-        this.tbody.innerHTML = sorted.map(row => this.renderRow(row)).join('');
+        let html = '';
+        for (const group of grouped) {
+            // Render section header
+            html += this.renderSectionHeader(group.type, group.typeName);
+            // Render rows for this type
+            html += group.symbols.map(row => this.renderRow(row)).join('');
+        }
+
+        this.tbody.innerHTML = html;
 
         // Debug: Log wsSymbol mapping for all rows
         console.log('[QuotesTable] Rendered rows with wsSymbol mapping:',
@@ -126,6 +140,65 @@ export class QuotesTable {
 
         // Initialize sparklines after render
         this.initSparklines();
+    }
+
+    groupByType(data) {
+        // Agrupar símbolos por tipo
+        const groups = {};
+
+        for (const symbol of data) {
+            const type = (symbol.type || 'OTHER').toUpperCase();
+            if (!groups[type]) {
+                groups[type] = {
+                    type: type,
+                    typeName: this.getTypeName(type),
+                    symbols: []
+                };
+            }
+            groups[type].symbols.push(symbol);
+        }
+
+        // Ordenar grupos según el orden predefinido
+        const sortedGroups = [];
+        for (const type of this.typeOrder) {
+            if (groups[type]) {
+                sortedGroups.push(groups[type]);
+                delete groups[type];
+            }
+        }
+        // Agregar tipos que no están en el orden predefinido al final
+        for (const type of Object.keys(groups)) {
+            sortedGroups.push(groups[type]);
+        }
+
+        return sortedGroups;
+    }
+
+    getTypeName(type) {
+        // Buscar el nombre del tipo en symbolTypes
+        const typeInfo = this.symbolTypes.find(t => t.code?.toUpperCase() === type);
+        if (typeInfo) return typeInfo.name;
+
+        // Nombres por defecto
+        const defaultNames = {
+            'INDEX': 'Indices',
+            'STOCK': 'Stocks',
+            'FUTURES': 'Futures',
+            'CRYPTO': 'Crypto',
+            'FOREX': 'Forex',
+            'OTHER': 'Other'
+        };
+        return defaultNames[type] || type;
+    }
+
+    renderSectionHeader(type, typeName) {
+        return `
+            <tr class="section-header" data-type="${type}">
+                <td colspan="6">
+                    <span class="section-title">${typeName.toUpperCase()}</span>
+                </td>
+            </tr>
+        `;
     }
 
     getSortedData() {
@@ -164,12 +237,13 @@ export class QuotesTable {
         const signal = formatSignal(data.analysis?.mainScenario?.direction);
         // Usar wsSymbol para el mapeo con WebSocket (GOLD, BTCUSD, etc.)
         const wsSymbol = data.wsSymbol || data.symbol || data.code;
+        const type = (data.type || 'OTHER').toUpperCase();
 
         return `
-            <tr class="quote-row ${selected}" data-code="${data.code}" data-ws-symbol="${wsSymbol}">
+            <tr class="quote-row ${selected}" data-code="${data.code}" data-ws-symbol="${wsSymbol}" data-type="${type}">
                 <td class="col-symbol">
                     <span class="symbol-emoji">${getTradingIcon(data.code, data.type, 16)}</span>
-                    ${data.symbol || data.code}
+                    ${data.fullName || data.symbol || data.code}
                 </td>
                 <td class="col-price">${price}</td>
                 <td class="col-change ${changeClass}">${change}</td>
