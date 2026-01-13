@@ -1095,16 +1095,25 @@
   display: block;
 }
 
+/* Allow tooltip to overflow when hovering */
+.tab-content:has(.summary-card.has-tooltip:hover) {
+  overflow: visible;
+}
+
 /* Market Summary */
 .market-summary {
   padding: 12px;
   border-bottom: 1px solid var(--pro-border);
+  overflow: visible;
+  position: relative;
+  z-index: 10;
 }
 
 .summary-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  overflow: visible;
 }
 
 .summary-card {
@@ -1354,6 +1363,136 @@
   font-size: 0.625rem;
   color: var(--color-warning);
   font-weight: 500;
+}
+
+/* Card Tooltip */
+.summary-card.has-tooltip {
+  position: relative;
+  cursor: pointer;
+}
+
+.summary-card.has-tooltip:hover {
+  z-index: 100;
+}
+
+.card-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 9999;
+  width: 280px;
+  background: var(--pro-bg-secondary);
+  border: 1px solid var(--pro-border-active);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.card-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 24px;
+  border: 8px solid transparent;
+  border-bottom-color: var(--pro-border-active);
+}
+
+.summary-card.has-tooltip:hover .card-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--pro-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pro-text-primary);
+}
+
+.tooltip-content {
+  padding: 10px 12px;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--pro-border);
+}
+
+.tooltip-row:last-of-type {
+  border-bottom: none;
+}
+
+.tooltip-label {
+  font-size: 0.6875rem;
+  color: var(--pro-text-secondary);
+}
+
+.tooltip-value {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--pro-text-primary);
+}
+
+.tooltip-anomaly {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+}
+
+.tooltip-anomaly-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin-bottom: 6px;
+}
+
+.tooltip-anomaly-desc {
+  font-size: 0.625rem;
+  color: var(--pro-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.tooltip-recommendation {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 6px;
+}
+
+.tooltip-recommendation-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #fbbf24;
+  margin-bottom: 6px;
+}
+
+.tooltip-recommendation-text {
+  font-size: 0.625rem;
+  color: var(--pro-text-secondary);
+  margin: 0;
+  line-height: 1.4;
 }
 
 /* Quotes Container */
@@ -1945,6 +2084,16 @@ kbd {
 
 .symbol-emoji {
   font-size: 2rem;
+}
+
+/* Symbol SVG icons */
+.symbol-icon {
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: cover;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--pro-bg-tertiary);
 }
 
 .symbol-details {

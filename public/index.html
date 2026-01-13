@@ -98,7 +98,7 @@
                   </div>
                 </div>
                 <!-- DEFCON Card -->
-                <div class="summary-card summary-card-defcon" id="defcon-card">
+                <div class="summary-card summary-card-defcon has-tooltip" id="defcon-card">
                   <div class="card-header">
                     <span class="card-icon"><i data-lucide="shield-alert" style="width:20px;height:20px;"></i></span>
                     <span class="card-title">DEFCON Index</span>
@@ -121,6 +121,45 @@
                   <div class="defcon-anomaly" id="defcon-anomaly" style="display: none;">
                     <span class="anomaly-icon"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#ef4444;"></i></span>
                     <span class="anomaly-text">Anomalía detectada</span>
+                  </div>
+                  <!-- Tooltip -->
+                  <div class="card-tooltip" id="defcon-tooltip">
+                    <div class="tooltip-header">
+                      <i data-lucide="shield-alert" style="width:16px;height:16px;"></i>
+                      <span>Pentagon Pizza Index</span>
+                    </div>
+                    <div class="tooltip-content">
+                      <div class="tooltip-row" id="tooltip-defcon-level">
+                        <span class="tooltip-label">Nivel DEFCON</span>
+                        <span class="tooltip-value">--</span>
+                      </div>
+                      <div class="tooltip-row" id="tooltip-defcon-status">
+                        <span class="tooltip-label">Estado</span>
+                        <span class="tooltip-value">--</span>
+                      </div>
+                      <div class="tooltip-row" id="tooltip-defcon-risk">
+                        <span class="tooltip-label">Clasificación</span>
+                        <span class="tooltip-value">--</span>
+                      </div>
+                      <div class="tooltip-row" id="tooltip-geo-risk" style="display:none;">
+                        <span class="tooltip-label">Riesgo Geopolítico</span>
+                        <span class="tooltip-value">--</span>
+                      </div>
+                      <div class="tooltip-anomaly" id="tooltip-anomaly" style="display:none;">
+                        <div class="tooltip-anomaly-title">
+                          <i data-lucide="alert-octagon" style="width:14px;height:14px;color:#ef4444;"></i>
+                          Anomalía Detectada
+                        </div>
+                        <p class="tooltip-anomaly-desc" id="tooltip-anomaly-desc"></p>
+                      </div>
+                      <div class="tooltip-recommendation" id="tooltip-recommendation" style="display:none;">
+                        <div class="tooltip-recommendation-title">
+                          <i data-lucide="lightbulb" style="width:14px;height:14px;color:#fbbf24;"></i>
+                          Recomendación
+                        </div>
+                        <p class="tooltip-recommendation-text" id="tooltip-recommendation-text"></p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

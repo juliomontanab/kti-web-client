@@ -1,7 +1,16 @@
 // ========== FORMATTERS MODULE ==========
 // Funciones de formateo de datos
 
-// Sistema de íconos Lucide para símbolos de trading
+// Lista de símbolos que tienen ícono SVG personalizado en /icons/
+export const AVAILABLE_SVG_ICONS = [
+    'AAPL', 'AMZN', 'AUDUSD', 'BTCUSD', 'COPPER', 'DIS', 'DJI', 'DXY',
+    'ETHUSD', 'EURUSD', 'GBPUSD', 'GOLD', 'GOOG', 'MSFT', 'NDQ', 'NFLX',
+    'NVDA', 'PALLADIUM', 'PLATINUM', 'SILVER', 'SPX', 'TSLA', 'US100',
+    'US30', 'US500', 'USCOCOA', 'USDCAD', 'USDCHF', 'USDCLP', 'USDCNY',
+    'USDDEM', 'USDJPY', 'VIX', 'WTI', 'XAUUSD'
+];
+
+// Sistema de íconos Lucide para símbolos de trading (fallback)
 export const TRADING_ICONS = {
     // Por tipo de activo / categoría
     types: {
@@ -91,8 +100,23 @@ export function getTradingIconConfig(symbolCode, type) {
     return iconConfig;
 }
 
-// Función para obtener el ícono Lucide HTML de un símbolo
+// Función para verificar si existe un ícono SVG para el símbolo
+export function hasSvgIcon(symbolCode) {
+    if (!symbolCode) return false;
+    const code = symbolCode.toUpperCase();
+    return AVAILABLE_SVG_ICONS.includes(code);
+}
+
+// Función para obtener el ícono HTML de un símbolo (SVG prioritario, Lucide fallback)
 export function getTradingIcon(symbolCode, type, size = 24) {
+    const code = (symbolCode || '').toUpperCase();
+
+    // Si existe ícono SVG personalizado, usarlo
+    if (hasSvgIcon(code)) {
+        return `<img src="/icons/${code}.svg" alt="${code}" class="symbol-icon" style="width:${size}px;height:${size}px;" />`;
+    }
+
+    // Fallback a Lucide Icons
     const iconConfig = getTradingIconConfig(symbolCode, type);
     return `<i data-lucide="${iconConfig.icon}" style="width:${size}px;height:${size}px;color:${iconConfig.color};"></i>`;
 }

@@ -6,7 +6,7 @@ import { askQuestion } from './core/api.js';
 import { connectWebSocket, onPriceUpdate, onConnectionStatusChange, realtimePrices } from './core/websocket.js';
 import { Storage, Preferences, STORAGE_KEYS } from './core/storage.js';
 import { getState, setState, subscribe, APP_VERSION } from './core/state.js';
-import { formatNumber, formatPercent, formatDate, formatRelativeTime } from './utils/formatters.js';
+import { formatNumber, formatPercent, formatDate, formatRelativeTime, getTradingIcon } from './utils/formatters.js';
 
 import { TickerTape } from './components/ticker-tape.js';
 import { Watchlist } from './components/watchlist.js';
@@ -327,7 +327,77 @@ class DashboardApp {
             if (defconAnomaly && defconData.anomalyDetected) {
                 defconAnomaly.style.display = 'flex';
             }
+
+            // Update tooltip content
+            this.updateDefconTooltip(defconData, level);
         }
+    }
+
+    updateDefconTooltip(data, level) {
+        const geoContext = data.geopoliticalContext || {};
+
+        // Level
+        const tooltipLevel = document.querySelector('#tooltip-defcon-level .tooltip-value');
+        if (tooltipLevel) {
+            tooltipLevel.textContent = `DEFCON ${level}`;
+            tooltipLevel.style.color = this.getDefconColor(level);
+        }
+
+        // Status
+        const tooltipStatus = document.querySelector('#tooltip-defcon-status .tooltip-value');
+        if (tooltipStatus) {
+            tooltipStatus.textContent = data.status || '--';
+        }
+
+        // Risk Classification
+        const tooltipRisk = document.querySelector('#tooltip-defcon-risk .tooltip-value');
+        if (tooltipRisk) {
+            tooltipRisk.textContent = data.riskClassification || '--';
+        }
+
+        // Geopolitical Risk Level
+        const tooltipGeoRisk = document.getElementById('tooltip-geo-risk');
+        if (tooltipGeoRisk && geoContext.riskLevel) {
+            tooltipGeoRisk.style.display = 'flex';
+            const geoRiskValue = tooltipGeoRisk.querySelector('.tooltip-value');
+            if (geoRiskValue) geoRiskValue.textContent = geoContext.riskLevel;
+        }
+
+        // Anomaly
+        const tooltipAnomaly = document.getElementById('tooltip-anomaly');
+        const tooltipAnomalyDesc = document.getElementById('tooltip-anomaly-desc');
+        if (tooltipAnomaly && data.anomalyDetected) {
+            tooltipAnomaly.style.display = 'block';
+            if (tooltipAnomalyDesc && data.anomalyDescription) {
+                tooltipAnomalyDesc.textContent = data.anomalyDescription;
+            }
+        }
+
+        // Recommendation
+        const tooltipRecommendation = document.getElementById('tooltip-recommendation');
+        const tooltipRecommendationText = document.getElementById('tooltip-recommendation-text');
+        if (tooltipRecommendation && data.recommendation) {
+            tooltipRecommendation.style.display = 'block';
+            if (tooltipRecommendationText) {
+                tooltipRecommendationText.textContent = data.recommendation;
+            }
+        }
+
+        // Re-initialize Lucide icons in tooltip
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    getDefconColor(level) {
+        const colors = {
+            1: '#ef4444',
+            2: '#e67e22',
+            3: '#ffa600',
+            4: '#3498db',
+            5: '#00d26a'
+        };
+        return colors[level] || '#888888';
     }
 
     getFearGreedClass(value) {
@@ -587,7 +657,7 @@ class DashboardApp {
             return `
                 <div class="reports-header">
                     <div class="symbol-info">
-                        <span class="symbol-emoji">${symbolData?.emoji || ''}</span>
+                        <span class="symbol-emoji">${getTradingIcon(code, symbolData?.type, 40)}</span>
                         <div class="symbol-details">
                             <h4>${symbolData?.name || code}</h4>
                             <span class="symbol-fullname">${symbolData?.fullName || ''}</span>
@@ -630,7 +700,7 @@ class DashboardApp {
         return `
             <div class="reports-header">
                 <div class="symbol-info">
-                    <span class="symbol-emoji">${symbolData?.emoji || ''}</span>
+                    <span class="symbol-emoji">${getTradingIcon(code, symbolData?.type, 40)}</span>
                     <div class="symbol-details">
                         <h4>${symbolData?.name || code}</h4>
                         <span class="symbol-fullname">${symbolData?.fullName || ''}</span>
@@ -689,7 +759,7 @@ class DashboardApp {
                 <!-- Header con precio -->
                 <div class="detail-section">
                     <div class="detail-header">
-                        <span class="detail-emoji">${detail.instrument?.emoji || ''}</span>
+                        <span class="detail-emoji">${getTradingIcon(detail.instrument?.symbol || this.expandedSymbol, detail.instrument?.assetType, 32)}</span>
                         <div class="detail-info">
                             <h4>${detail.instrument?.name || detail.instrument?.symbol}</h4>
                             <span class="detail-timeframe">${detail.instrument?.timeframe || ''} • ${detail.instrument?.assetType || ''}</span>
@@ -1013,7 +1083,7 @@ class DashboardApp {
         return `
             <div class="detail-section">
                 <div class="detail-header">
-                    <span class="detail-emoji">${data.instrument?.emoji || ''}</span>
+                    <span class="detail-emoji">${getTradingIcon(data.instrument?.symbol || data.code, data.instrument?.assetType, 32)}</span>
                     <div class="detail-info">
                         <h4>${data.instrument?.name || data.code}</h4>
                         <span class="detail-timeframe">${data.instrument?.timeframe || ''}</span>

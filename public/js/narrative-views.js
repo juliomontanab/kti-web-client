@@ -3,6 +3,15 @@
 
 import { formatNumber, formatPercent, formatRelativeTime } from './utils/formatters.js';
 
+// Helper function for Fear & Greed level classification
+function getFearGreedLevel(value) {
+    if (value >= 75) return 'extreme-greed';
+    if (value >= 55) return 'greed';
+    if (value >= 45) return 'neutral';
+    if (value >= 25) return 'fear';
+    return 'extreme-fear';
+}
+
 export function renderExecutiveView(detail) {
     const executive = detail.executive || {};
     const price = detail.technical?.price || detail.price || {};
