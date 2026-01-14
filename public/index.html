@@ -98,10 +98,11 @@
                   </div>
                 </div>
                 <!-- DEFCON Card -->
-                <div class="summary-card summary-card-defcon has-tooltip" id="defcon-card">
+                <div class="summary-card summary-card-defcon clickable" id="defcon-card">
                   <div class="card-header">
                     <span class="card-icon"><i data-lucide="shield-alert" style="width:20px;height:20px;"></i></span>
                     <span class="card-title">DEFCON Index</span>
+                    <span class="card-expand"><i data-lucide="info" style="width:14px;height:14px;opacity:0.5;"></i></span>
                   </div>
                   <div class="defcon-display">
                     <div class="defcon-level-circle" id="defcon-circle">
@@ -121,45 +122,6 @@
                   <div class="defcon-anomaly" id="defcon-anomaly" style="display: none;">
                     <span class="anomaly-icon"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#ef4444;"></i></span>
                     <span class="anomaly-text">Anomalía detectada</span>
-                  </div>
-                  <!-- Tooltip -->
-                  <div class="card-tooltip" id="defcon-tooltip">
-                    <div class="tooltip-header">
-                      <i data-lucide="shield-alert" style="width:16px;height:16px;"></i>
-                      <span>Pentagon Pizza Index</span>
-                    </div>
-                    <div class="tooltip-content">
-                      <div class="tooltip-row" id="tooltip-defcon-level">
-                        <span class="tooltip-label">Nivel DEFCON</span>
-                        <span class="tooltip-value">--</span>
-                      </div>
-                      <div class="tooltip-row" id="tooltip-defcon-status">
-                        <span class="tooltip-label">Estado</span>
-                        <span class="tooltip-value">--</span>
-                      </div>
-                      <div class="tooltip-row" id="tooltip-defcon-risk">
-                        <span class="tooltip-label">Clasificación</span>
-                        <span class="tooltip-value">--</span>
-                      </div>
-                      <div class="tooltip-row" id="tooltip-geo-risk" style="display:none;">
-                        <span class="tooltip-label">Riesgo Geopolítico</span>
-                        <span class="tooltip-value">--</span>
-                      </div>
-                      <div class="tooltip-anomaly" id="tooltip-anomaly" style="display:none;">
-                        <div class="tooltip-anomaly-title">
-                          <i data-lucide="alert-octagon" style="width:14px;height:14px;color:#ef4444;"></i>
-                          Anomalía Detectada
-                        </div>
-                        <p class="tooltip-anomaly-desc" id="tooltip-anomaly-desc"></p>
-                      </div>
-                      <div class="tooltip-recommendation" id="tooltip-recommendation" style="display:none;">
-                        <div class="tooltip-recommendation-title">
-                          <i data-lucide="lightbulb" style="width:14px;height:14px;color:#fbbf24;"></i>
-                          Recomendación
-                        </div>
-                        <p class="tooltip-recommendation-text" id="tooltip-recommendation-text"></p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -341,6 +303,52 @@
             <input type="text" id="alert-message" placeholder="Alert message" />
           </div>
           <button class="btn-primary" id="btn-create-alert"><i data-lucide="check" style="width:14px;height:14px;margin-right:4px;"></i>Create Alert</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: DEFCON Info -->
+    <div class="modal-overlay" id="modal-defcon">
+      <div class="modal modal-defcon">
+        <div class="modal-header">
+          <h3><i data-lucide="shield-alert" style="width:18px;height:18px;margin-right:8px;"></i>Pentagon Pizza Index</h3>
+          <button class="modal-close" data-close-modal><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="defcon-modal-display" id="modal-defcon-display">
+            <div class="defcon-level-large" id="modal-defcon-circle">
+              <span class="defcon-number-large" id="modal-defcon-value">--</span>
+              <span class="defcon-label-large">DEFCON</span>
+            </div>
+          </div>
+          <div class="defcon-modal-info">
+            <div class="defcon-modal-row">
+              <span class="defcon-modal-label">Estado</span>
+              <span class="defcon-modal-value" id="modal-defcon-status">--</span>
+            </div>
+            <div class="defcon-modal-row">
+              <span class="defcon-modal-label">Clasificación de Riesgo</span>
+              <span class="defcon-modal-value" id="modal-defcon-risk">--</span>
+            </div>
+            <div class="defcon-modal-row" id="modal-geo-risk-row" style="display:none;">
+              <span class="defcon-modal-label">Riesgo Geopolítico</span>
+              <span class="defcon-modal-value" id="modal-geo-risk">--</span>
+            </div>
+          </div>
+          <div class="defcon-modal-alert" id="modal-defcon-anomaly" style="display:none;">
+            <div class="defcon-alert-header">
+              <i data-lucide="alert-octagon" style="width:16px;height:16px;color:#ef4444;"></i>
+              <span>Anomalía Detectada</span>
+            </div>
+            <p class="defcon-alert-text" id="modal-anomaly-desc"></p>
+          </div>
+          <div class="defcon-modal-recommendation" id="modal-defcon-recommendation" style="display:none;">
+            <div class="defcon-recommendation-header">
+              <i data-lucide="lightbulb" style="width:16px;height:16px;color:#fbbf24;"></i>
+              <span>Recomendación</span>
+            </div>
+            <p class="defcon-recommendation-text" id="modal-recommendation-text"></p>
+          </div>
         </div>
       </div>
     </div>

@@ -169,6 +169,53 @@ class DashboardApp {
         if (prefs.compactMode) {
             document.getElementById('dashboard-grid')?.classList.add('compact');
         }
+
+        // Initialize DEFCON modal
+        this.initDefconModal();
+    }
+
+    initDefconModal() {
+        // DEFCON card click opens modal
+        const defconCard = document.getElementById('defcon-card');
+        const defconModal = document.getElementById('modal-defcon');
+
+        if (defconCard && defconModal) {
+            defconCard.addEventListener('click', () => {
+                this.openDefconModal();
+            });
+
+            // Close modal on overlay click
+            defconModal.addEventListener('click', (e) => {
+                if (e.target === defconModal) {
+                    this.closeModal(defconModal);
+                }
+            });
+
+            // Close modal on close button click
+            const closeBtn = defconModal.querySelector('[data-close-modal]');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.closeModal(defconModal);
+                });
+            }
+        }
+    }
+
+    openDefconModal() {
+        const modal = document.getElementById('modal-defcon');
+        if (modal) {
+            modal.classList.add('visible');
+            // Refresh Lucide icons in modal
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+    }
+
+    closeModal(modal) {
+        if (modal) {
+            modal.classList.remove('visible');
+        }
     }
 
     async loadInitialData() {
@@ -328,64 +375,62 @@ class DashboardApp {
                 defconAnomaly.style.display = 'flex';
             }
 
-            // Update tooltip content
-            this.updateDefconTooltip(defconData, level);
+            // Update modal content
+            this.updateDefconModal(defconData, level);
         }
     }
 
-    updateDefconTooltip(data, level) {
+    updateDefconModal(data, level) {
         const geoContext = data.geopoliticalContext || {};
 
-        // Level
-        const tooltipLevel = document.querySelector('#tooltip-defcon-level .tooltip-value');
-        if (tooltipLevel) {
-            tooltipLevel.textContent = `DEFCON ${level}`;
-            tooltipLevel.style.color = this.getDefconColor(level);
+        // Level circle
+        const modalCircle = document.getElementById('modal-defcon-circle');
+        const modalValue = document.getElementById('modal-defcon-value');
+        if (modalCircle) {
+            modalCircle.className = `defcon-level-large defcon-${level}`;
+        }
+        if (modalValue) {
+            modalValue.textContent = level;
         }
 
         // Status
-        const tooltipStatus = document.querySelector('#tooltip-defcon-status .tooltip-value');
-        if (tooltipStatus) {
-            tooltipStatus.textContent = data.status || '--';
+        const modalStatus = document.getElementById('modal-defcon-status');
+        if (modalStatus) {
+            modalStatus.textContent = data.status || '--';
         }
 
         // Risk Classification
-        const tooltipRisk = document.querySelector('#tooltip-defcon-risk .tooltip-value');
-        if (tooltipRisk) {
-            tooltipRisk.textContent = data.riskClassification || '--';
+        const modalRisk = document.getElementById('modal-defcon-risk');
+        if (modalRisk) {
+            modalRisk.textContent = data.riskClassification || '--';
         }
 
         // Geopolitical Risk Level
-        const tooltipGeoRisk = document.getElementById('tooltip-geo-risk');
-        if (tooltipGeoRisk && geoContext.riskLevel) {
-            tooltipGeoRisk.style.display = 'flex';
-            const geoRiskValue = tooltipGeoRisk.querySelector('.tooltip-value');
+        const geoRiskRow = document.getElementById('modal-geo-risk-row');
+        const geoRiskValue = document.getElementById('modal-geo-risk');
+        if (geoRiskRow && geoContext.riskLevel) {
+            geoRiskRow.style.display = 'flex';
             if (geoRiskValue) geoRiskValue.textContent = geoContext.riskLevel;
         }
 
         // Anomaly
-        const tooltipAnomaly = document.getElementById('tooltip-anomaly');
-        const tooltipAnomalyDesc = document.getElementById('tooltip-anomaly-desc');
-        if (tooltipAnomaly && data.anomalyDetected) {
-            tooltipAnomaly.style.display = 'block';
-            if (tooltipAnomalyDesc && data.anomalyDescription) {
-                tooltipAnomalyDesc.textContent = data.anomalyDescription;
+        const modalAnomaly = document.getElementById('modal-defcon-anomaly');
+        const modalAnomalyDesc = document.getElementById('modal-anomaly-desc');
+        if (modalAnomaly && data.anomalyDetected) {
+            modalAnomaly.style.display = 'block';
+            if (modalAnomalyDesc && data.anomalyDescription) {
+                modalAnomalyDesc.textContent = data.anomalyDescription;
             }
         }
 
         // Recommendation
-        const tooltipRecommendation = document.getElementById('tooltip-recommendation');
-        const tooltipRecommendationText = document.getElementById('tooltip-recommendation-text');
-        if (tooltipRecommendation && data.recommendation) {
-            tooltipRecommendation.style.display = 'block';
-            if (tooltipRecommendationText) {
-                tooltipRecommendationText.textContent = data.recommendation;
+        const modalRecommendation = document.getElementById('modal-defcon-recommendation');
+        const modalRecommendationText = document.getElementById('modal-recommendation-text');
+        if (modalRecommendation && data.recommendation) {
+            modalRecommendation.style.display = 'block';
+            if (modalRecommendationText) {
+                modalRecommendationText.textContent = data.recommendation;
             }
-        }
-
-        // Re-initialize Lucide icons in tooltip
-        if (window.lucide) {
-            window.lucide.createIcons();
         }
     }
 
