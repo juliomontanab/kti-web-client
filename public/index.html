@@ -7,12 +7,9 @@
     <meta name="description" content="KTI - Professional Trading Dashboard" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" href="icon-192.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/dashboard-pro.css" />
     <link rel="stylesheet" href="css/narrative-engine.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -48,30 +45,14 @@
       <!-- Left Panel: Watchlist -->
       <aside class="panel panel-watchlist" id="watchlist-panel">
         <div class="panel-header">
-          <h3>
-            <i
-              data-lucide="star"
-              style="
-                width: 16px;
-                height: 16px;
-                display: inline;
-                vertical-align: middle;
-                margin-right: 6px;
-              "
-            ></i
-            >Watchlist
-          </h3>
-          <button class="btn-icon" id="btn-add-watchlist" title="Add Symbol">
-            <i data-lucide="plus" style="width: 16px; height: 16px"></i>
-          </button>
+          <h3><i data-lucide="star" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;"></i>Watchlist</h3>
+          <button class="btn-icon" id="btn-add-watchlist" title="Add Symbol"><i data-lucide="plus" style="width:16px;height:16px;"></i></button>
         </div>
         <div class="panel-content" id="watchlist-content">
           <!-- Watchlist items populated by JS -->
           <div class="empty-state" id="watchlist-empty">
             <p>No symbols in watchlist</p>
-            <button class="btn-primary" id="btn-browse-symbols">
-              Browse Symbols
-            </button>
+            <button class="btn-primary" id="btn-browse-symbols">Browse Symbols</button>
           </div>
         </div>
       </aside>
@@ -80,37 +61,13 @@
       <section class="panel panel-main" id="main-panel">
         <!-- Tabs Navigation -->
         <nav class="panel-tabs" id="main-tabs">
-          <button class="tab-btn active" data-tab="overview">
-            <i
-              data-lucide="layout-dashboard"
-              style="width: 14px; height: 14px; margin-right: 4px"
-            ></i
-            >Overview
-          </button>
-          <button class="tab-btn" data-tab="screener">
-            <i
-              data-lucide="scan-search"
-              style="width: 14px; height: 14px; margin-right: 4px"
-            ></i
-            >Screener
-          </button>
-          <button class="tab-btn" data-tab="heatmap">
-            <i
-              data-lucide="grid-3x3"
-              style="width: 14px; height: 14px; margin-right: 4px"
-            ></i
-            >Heat Map
-          </button>
-          <button class="tab-btn" data-tab="alerts">
-            <i
-              data-lucide="bell"
-              style="width: 14px; height: 14px; margin-right: 4px"
-            ></i
-            >Alerts
-          </button>
+          <button class="tab-btn active" data-tab="overview"><i data-lucide="layout-dashboard" style="width:14px;height:14px;margin-right:4px;"></i>Overview</button>
+          <button class="tab-btn" data-tab="screener"><i data-lucide="scan-search" style="width:14px;height:14px;margin-right:4px;"></i>Screener</button>
+          <button class="tab-btn" data-tab="heatmap"><i data-lucide="grid-3x3" style="width:14px;height:14px;margin-right:4px;"></i>Heat Map</button>
+          <button class="tab-btn" data-tab="alerts"><i data-lucide="bell" style="width:14px;height:14px;margin-right:4px;"></i>Alerts</button>
         </nav>
 
-        <!-- Tab Content JM -->
+        <!-- Tab Content -->
         <div class="panel-content" id="main-content">
           <!-- Overview Tab -->
           <div class="tab-content active" id="tab-overview">
@@ -120,70 +77,37 @@
                 <!-- Fear & Greed Card -->
                 <div class="summary-card summary-card-fg" id="fear-greed-card">
                   <div class="card-header">
-                    <span class="card-icon"
-                      ><i
-                        data-lucide="gauge"
-                        style="width: 20px; height: 20px"
-                      ></i
-                    ></span>
-                    <span class="card-title">Fear & Greed Index</span>
+                    <span class="card-icon"><i data-lucide="gauge" style="width:20px;height:20px;"></i></span>
+                    <span class="card-title">Índice Miedo y Codicia</span>
+                    <span class="card-info-icon" data-info-type="fear-greed">
+                      <i data-lucide="info" style="width:14px;height:14px;"></i>
+                    </span>
                   </div>
                   <div class="fg-markets">
                     <div class="fg-market" id="fg-stock">
                       <span class="fg-market-label">Stock</span>
-                      <span class="fg-market-value" id="fg-stock-value"
-                        >--</span
-                      >
-                      <span class="fg-market-status" id="fg-stock-status"
-                        >--</span
-                      >
+                      <span class="fg-market-value" id="fg-stock-value">--</span>
+                      <span class="fg-market-status" id="fg-stock-status">--</span>
                     </div>
                     <div class="fg-market" id="fg-crypto">
                       <span class="fg-market-label">Crypto</span>
-                      <span class="fg-market-value" id="fg-crypto-value"
-                        >--</span
-                      >
-                      <span class="fg-market-status" id="fg-crypto-status"
-                        >--</span
-                      >
+                      <span class="fg-market-value" id="fg-crypto-value">--</span>
+                      <span class="fg-market-status" id="fg-crypto-status">--</span>
                     </div>
                   </div>
-                  <div
-                    class="fg-divergence"
-                    id="fg-divergence"
-                    style="display: none"
-                  >
-                    <span class="divergence-icon"
-                      ><i
-                        data-lucide="alert-triangle"
-                        style="width: 16px; height: 16px; color: #f59e0b"
-                      ></i
-                    ></span>
-                    <span
-                      class="divergence-text"
-                      id="fg-divergence-text"
-                    ></span>
+                  <div class="fg-divergence" id="fg-divergence" style="display: none;">
+                    <span class="divergence-icon"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#f59e0b;"></i></span>
+                    <span class="divergence-text" id="fg-divergence-text"></span>
                   </div>
                 </div>
-                <!-- DEFCON Card -->
-                <div
-                  class="summary-card summary-card-defcon clickable"
-                  id="defcon-card"
-                >
+                <!-- DEFCON/DOUGHCON Card -->
+                <div class="summary-card summary-card-defcon" id="defcon-card">
                   <div class="card-header">
-                    <span class="card-icon"
-                      ><i
-                        data-lucide="shield-alert"
-                        style="width: 20px; height: 20px"
-                      ></i
-                    ></span>
-                    <span class="card-title">DEFCON Index</span>
-                    <span class="card-expand"
-                      ><i
-                        data-lucide="info"
-                        style="width: 14px; height: 14px; opacity: 0.5"
-                      ></i
-                    ></span>
+                    <span class="card-icon"><i data-lucide="shield-alert" style="width:20px;height:20px;"></i></span>
+                    <span class="card-title">Índice Geopolítico</span>
+                    <span class="card-info-icon" data-info-type="geopolitical">
+                      <i data-lucide="info" style="width:14px;height:14px;"></i>
+                    </span>
                   </div>
                   <div class="defcon-display">
                     <div class="defcon-level-circle" id="defcon-circle">
@@ -200,18 +124,34 @@
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="defcon-anomaly"
-                    id="defcon-anomaly"
-                    style="display: none"
-                  >
-                    <span class="anomaly-icon"
-                      ><i
-                        data-lucide="alert-triangle"
-                        style="width: 16px; height: 16px; color: #ef4444"
-                      ></i
-                    ></span>
+                  <div class="defcon-anomaly" id="defcon-anomaly" style="display: none;">
+                    <span class="anomaly-icon"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#ef4444;"></i></span>
                     <span class="anomaly-text">Anomalía detectada</span>
+                  </div>
+                </div>
+                <!-- NEH Index Card -->
+                <div class="summary-card summary-card-neh" id="neh-card">
+                  <div class="card-header">
+                    <span class="card-icon"><i data-lucide="eye" style="width:20px;height:20px;"></i></span>
+                    <span class="card-title">Índice Cisne Negro</span>
+                    <span class="card-info-icon" data-info-type="black-swan">
+                      <i data-lucide="info" style="width:14px;height:14px;"></i>
+                    </span>
+                  </div>
+                  <div class="neh-display">
+                    <div class="neh-value-circle" id="neh-circle">
+                      <span class="neh-number" id="neh-value">--</span>
+                    </div>
+                    <div class="neh-info">
+                      <div class="neh-row">
+                        <span class="neh-label">Estado</span>
+                        <span class="neh-badge" id="neh-status">--</span>
+                      </div>
+                      <div class="neh-row">
+                        <span class="neh-label">Nivel</span>
+                        <span class="neh-badge" id="neh-classification">--</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -220,35 +160,13 @@
             <!-- Top Movers -->
             <div class="top-movers" id="top-movers">
               <div class="movers-section gainers">
-                <h4>
-                  <i
-                    data-lucide="trending-up"
-                    style="
-                      width: 16px;
-                      height: 16px;
-                      color: #22c55e;
-                      margin-right: 6px;
-                    "
-                  ></i
-                  >Top Gainers
-                </h4>
+                <h4><i data-lucide="trending-up" style="width:16px;height:16px;color:#22c55e;margin-right:6px;"></i>Top Gainers</h4>
                 <div id="gainers-list">
                   <!-- Populated by JS -->
                 </div>
               </div>
               <div class="movers-section losers">
-                <h4>
-                  <i
-                    data-lucide="trending-down"
-                    style="
-                      width: 16px;
-                      height: 16px;
-                      color: #ef4444;
-                      margin-right: 6px;
-                    "
-                  ></i
-                  >Top Losers
-                </h4>
+                <h4><i data-lucide="trending-down" style="width:16px;height:16px;color:#ef4444;margin-right:6px;"></i>Top Losers</h4>
                 <div id="losers-list">
                   <!-- Populated by JS -->
                 </div>
@@ -293,20 +211,12 @@
                     <option value="equals">Equals</option>
                   </select>
                   <input type="text" id="filter-value" placeholder="Value" />
-                  <button class="btn-icon" id="btn-add-filter">
-                    <i data-lucide="plus" style="width: 14px; height: 14px"></i>
-                  </button>
+                  <button class="btn-icon" id="btn-add-filter"><i data-lucide="plus" style="width:14px;height:14px;"></i></button>
                 </div>
                 <div class="active-filters" id="active-filters">
                   <!-- Active filter badges -->
                 </div>
-                <button class="btn-scan" id="btn-scan">
-                  <i
-                    data-lucide="radar"
-                    style="width: 14px; height: 14px; margin-right: 4px"
-                  ></i
-                  >Scan Market
-                </button>
+                <button class="btn-scan" id="btn-scan"><i data-lucide="radar" style="width:14px;height:14px;margin-right:4px;"></i>Scan Market</button>
               </div>
               <div class="screener-results" id="screener-results">
                 <!-- Results populated by JS -->
@@ -325,13 +235,7 @@
           <div class="tab-content" id="tab-alerts">
             <div class="alerts-panel" id="alerts-panel">
               <div class="alerts-header">
-                <button class="btn-primary" id="btn-new-alert">
-                  <i
-                    data-lucide="bell-plus"
-                    style="width: 14px; height: 14px; margin-right: 4px"
-                  ></i
-                  >New Alert
-                </button>
+                <button class="btn-primary" id="btn-new-alert"><i data-lucide="bell-plus" style="width:14px;height:14px;margin-right:4px;"></i>New Alert</button>
               </div>
               <div class="alerts-list" id="alerts-list">
                 <!-- Alerts populated by JS -->
@@ -344,16 +248,8 @@
       <!-- Right Panel: Details -->
       <aside class="panel panel-details" id="details-panel">
         <div class="panel-header">
-          <h3 id="details-title">
-            <i
-              data-lucide="info"
-              style="width: 16px; height: 16px; margin-right: 6px"
-            ></i
-            >Details
-          </h3>
-          <button class="btn-icon" id="btn-close-details" title="Close">
-            <i data-lucide="x" style="width: 16px; height: 16px"></i>
-          </button>
+          <h3 id="details-title"><i data-lucide="info" style="width:16px;height:16px;margin-right:6px;"></i>Details</h3>
+          <button class="btn-icon" id="btn-close-details" title="Close"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
         </div>
         <div class="panel-content" id="details-content">
           <!-- Details populated by JS -->
@@ -371,24 +267,15 @@
         <span id="ws-status-text">Disconnected</span>
       </div>
       <div class="status-alerts" id="status-alerts">
-        <i
-          data-lucide="bell"
-          style="width: 12px; height: 12px; margin-right: 4px"
-        ></i>
+        <i data-lucide="bell" style="width:12px;height:12px;margin-right:4px;"></i>
         <span id="active-alerts-count">0 active alerts</span>
       </div>
       <div class="status-shortcuts">
-        <i
-          data-lucide="keyboard"
-          style="width: 12px; height: 12px; margin-right: 4px"
-        ></i>
+        <i data-lucide="keyboard" style="width:12px;height:12px;margin-right:4px;"></i>
         <span>Press <kbd>?</kbd> for shortcuts</span>
       </div>
       <div class="status-time" id="status-time">
-        <i
-          data-lucide="clock"
-          style="width: 12px; height: 12px; margin-right: 4px"
-        ></i>
+        <i data-lucide="clock" style="width:12px;height:12px;margin-right:4px;"></i>
         <span id="market-time">--:--:--</span>
       </div>
     </footer>
@@ -397,38 +284,13 @@
     <div class="modal-overlay" id="modal-add-watchlist">
       <div class="modal">
         <div class="modal-header">
-          <h3>
-            <i
-              data-lucide="star"
-              style="width: 18px; height: 18px; margin-right: 8px"
-            ></i
-            >Add Symbol to Watchlist
-          </h3>
-          <button class="modal-close" data-close-modal>
-            <i data-lucide="x" style="width: 18px; height: 18px"></i>
-          </button>
+          <h3><i data-lucide="star" style="width:18px;height:18px;margin-right:8px;"></i>Add Symbol to Watchlist</h3>
+          <button class="modal-close" data-close-modal><i data-lucide="x" style="width:18px;height:18px;"></i></button>
         </div>
         <div class="modal-body">
-          <div style="position: relative">
-            <i
-              data-lucide="search"
-              style="
-                width: 16px;
-                height: 16px;
-                position: absolute;
-                left: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                opacity: 0.5;
-              "
-            ></i>
-            <input
-              type="text"
-              id="search-symbol"
-              placeholder="Search symbols..."
-              class="search-input"
-              style="padding-left: 36px"
-            />
+          <div style="position:relative;">
+            <i data-lucide="search" style="width:16px;height:16px;position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.5;"></i>
+            <input type="text" id="search-symbol" placeholder="Search symbols..." class="search-input" style="padding-left:36px;" />
           </div>
           <div class="symbol-search-results" id="symbol-search-results">
             <!-- Search results -->
@@ -441,16 +303,8 @@
     <div class="modal-overlay" id="modal-create-alert">
       <div class="modal">
         <div class="modal-header">
-          <h3>
-            <i
-              data-lucide="bell-plus"
-              style="width: 18px; height: 18px; margin-right: 8px"
-            ></i
-            >Create Alert
-          </h3>
-          <button class="modal-close" data-close-modal>
-            <i data-lucide="x" style="width: 18px; height: 18px"></i>
-          </button>
+          <h3><i data-lucide="bell-plus" style="width:18px;height:18px;margin-right:8px;"></i>Create Alert</h3>
+          <button class="modal-close" data-close-modal><i data-lucide="x" style="width:18px;height:18px;"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -478,92 +332,7 @@
             <label>Message (optional)</label>
             <input type="text" id="alert-message" placeholder="Alert message" />
           </div>
-          <button class="btn-primary" id="btn-create-alert">
-            <i
-              data-lucide="check"
-              style="width: 14px; height: 14px; margin-right: 4px"
-            ></i
-            >Create Alert
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: DEFCON Info -->
-    <div class="modal-overlay" id="modal-defcon">
-      <div class="modal modal-defcon">
-        <div class="modal-header">
-          <h3>
-            <i
-              data-lucide="shield-alert"
-              style="width: 18px; height: 18px; margin-right: 8px"
-            ></i
-            >Pentagon Pizza Index
-          </h3>
-          <button class="modal-close" data-close-modal>
-            <i data-lucide="x" style="width: 18px; height: 18px"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="defcon-modal-display" id="modal-defcon-display">
-            <div class="defcon-level-large" id="modal-defcon-circle">
-              <span class="defcon-number-large" id="modal-defcon-value"
-                >--</span
-              >
-              <span class="defcon-label-large">DEFCON</span>
-            </div>
-          </div>
-          <div class="defcon-modal-info">
-            <div class="defcon-modal-row">
-              <span class="defcon-modal-label">Estado</span>
-              <span class="defcon-modal-value" id="modal-defcon-status"
-                >--</span
-              >
-            </div>
-            <div class="defcon-modal-row">
-              <span class="defcon-modal-label">Clasificación de Riesgo</span>
-              <span class="defcon-modal-value" id="modal-defcon-risk">--</span>
-            </div>
-            <div
-              class="defcon-modal-row"
-              id="modal-geo-risk-row"
-              style="display: none"
-            >
-              <span class="defcon-modal-label">Riesgo Geopolítico</span>
-              <span class="defcon-modal-value" id="modal-geo-risk">--</span>
-            </div>
-          </div>
-          <div
-            class="defcon-modal-alert"
-            id="modal-defcon-anomaly"
-            style="display: none"
-          >
-            <div class="defcon-alert-header">
-              <i
-                data-lucide="alert-octagon"
-                style="width: 16px; height: 16px; color: #ef4444"
-              ></i>
-              <span>Anomalía Detectada</span>
-            </div>
-            <p class="defcon-alert-text" id="modal-anomaly-desc"></p>
-          </div>
-          <div
-            class="defcon-modal-recommendation"
-            id="modal-defcon-recommendation"
-            style="display: none"
-          >
-            <div class="defcon-recommendation-header">
-              <i
-                data-lucide="lightbulb"
-                style="width: 16px; height: 16px; color: #fbbf24"
-              ></i>
-              <span>Recomendación</span>
-            </div>
-            <p
-              class="defcon-recommendation-text"
-              id="modal-recommendation-text"
-            ></p>
-          </div>
+          <button class="btn-primary" id="btn-create-alert"><i data-lucide="check" style="width:14px;height:14px;margin-right:4px;"></i>Create Alert</button>
         </div>
       </div>
     </div>
@@ -572,16 +341,8 @@
     <div class="modal-overlay" id="modal-shortcuts">
       <div class="modal">
         <div class="modal-header">
-          <h3>
-            <i
-              data-lucide="keyboard"
-              style="width: 18px; height: 18px; margin-right: 8px"
-            ></i
-            >Keyboard Shortcuts
-          </h3>
-          <button class="modal-close" data-close-modal>
-            <i data-lucide="x" style="width: 18px; height: 18px"></i>
-          </button>
+          <h3><i data-lucide="keyboard" style="width:18px;height:18px;margin-right:8px;"></i>Keyboard Shortcuts</h3>
+          <button class="modal-close" data-close-modal><i data-lucide="x" style="width:18px;height:18px;"></i></button>
         </div>
         <div class="modal-body">
           <div class="shortcuts-list">
@@ -626,6 +387,24 @@
               <span class="shortcut-desc">Close modal/panel</span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Index Info -->
+    <div class="info-modal-overlay" id="info-modal">
+      <div class="info-modal">
+        <div class="info-modal-header">
+          <div class="modal-icon" id="info-modal-icon">
+            <i data-lucide="info" style="width:20px;height:20px;"></i>
+          </div>
+          <span class="modal-title" id="info-modal-title">Información</span>
+        </div>
+        <div class="info-modal-body" id="info-modal-body">
+          <!-- Content will be dynamically inserted -->
+        </div>
+        <div class="info-modal-footer">
+          <button class="btn-close-info" id="btn-close-info">Entendido</button>
         </div>
       </div>
     </div>
