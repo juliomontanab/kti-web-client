@@ -37,6 +37,11 @@ class DashboardApp {
         this.activeTab = 'overview';
         this.selectedSymbol = null;
         this.expandedSymbol = null; // Símbolo expandido para mostrar reportes
+
+        // Auto-refresh para indicadores de mercado
+        this.previousMarketIndexes = null;
+        this.marketIndexesRefreshInterval = null;
+        this.MARKET_INDEXES_REFRESH_MS = 5 * 60 * 1000; // 5 minutos
     }
 
     async init() {
@@ -65,6 +70,9 @@ class DashboardApp {
 
         // Update time
         this.startTimeUpdater();
+
+        // Start market indexes auto-refresh (every 5 minutes)
+        this.startMarketIndexesAutoRefresh();
 
         // Request notification permission
         if (this.alertManager) {
@@ -352,9 +360,13 @@ class DashboardApp {
             }
         }
 
-        // DEFCON Level
+        // DEFCON/DOUGHCON Level
         if (defconData) {
-            const level = defconData.defconLevel || defconData.geopoliticalContext?.defconLevel || '--';
+            // Check for DOUGHCON first (newer), then fall back to DEFCON
+            const isDoughcon = defconData.doughconLevel !== null && defconData.doughconLevel !== undefined;
+            const level = isDoughcon ? defconData.doughconLevel : (defconData.defconLevel || defconData.geopoliticalContext?.defconLevel || '--');
+            const levelType = isDoughcon ? 'DOUGHCON' : 'DEFCON';
+
             const defconValue = document.getElementById('defcon-value');
             const defconCircle = document.getElementById('defcon-circle');
             const defconStatus = document.getElementById('defcon-status');
@@ -364,45 +376,436 @@ class DashboardApp {
             if (defconValue) defconValue.textContent = level;
             if (defconCircle) defconCircle.className = `defcon-level-circle defcon-${level}`;
             if (defconStatus) {
+                // Show the operational status
                 defconStatus.textContent = defconData.status || 'UNKNOWN';
                 defconStatus.className = `defcon-badge status-${(defconData.status || '').toLowerCase()}`;
             }
             if (defconRisk) {
-                defconRisk.textContent = defconData.riskClassification || '--';
-                defconRisk.className = `defcon-badge risk-${(defconData.riskClassification || '').toLowerCase()}`;
+                // For DOUGHCON, show the level name (GUARDED, ELEVATED, etc.) as risk classification
+                const riskText = isDoughcon && defconData.doughconLevelName
+                    ? defconData.doughconLevelName
+                    : (defconData.riskClassification || '--');
+                defconRisk.textContent = riskText;
+                defconRisk.className = `defcon-badge risk-${riskText.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-')}`;
             }
             if (defconAnomaly && defconData.anomalyDetected) {
                 defconAnomaly.style.display = 'flex';
             }
 
             // Update modal content
-            this.updateDefconModal(defconData, level);
+            this.updateDefconModal(defconData, level, levelType);
+        }
+
+        // NEH Index (Nothing Ever Happens)
+        const nehData = this.marketIndexes.nothingEverHappensIndex;
+        if (nehData) {
+            const nehValue = document.getElementById('neh-value');
+            const nehCircle = document.getElementById('neh-circle');
+            const nehStatus = document.getElementById('neh-status');
+            const nehClassification = document.getElementById('neh-classification');
+
+            if (nehValue) nehValue.textContent = nehData.value || '--';
+            if (nehCircle) nehCircle.className = `neh-value-circle ${this.getNehClass(nehData.value)}`;
+            if (nehStatus) {
+                nehStatus.textContent = nehData.status || 'UNKNOWN';
+                nehStatus.className = `neh-badge status-${(nehData.classification || '').toLowerCase()}`;
+            }
+            if (nehClassification) {
+                nehClassification.textContent = nehData.classification || '--';
+                nehClassification.className = `neh-badge classification-${(nehData.classification || '').toLowerCase()}`;
+            }
         }
     }
 
-    updateDefconModal(data, level) {
+    getNehClass(value) {
+        // NEH Index: 0-25 = CALM, 26-50 = ALERT, 51-75 = ACTIVE, 76-100 = CRITICAL
+        if (value <= 25) return 'neh-calm';
+        if (value <= 50) return 'neh-alert';
+        if (value <= 75) return 'neh-active';
+        return 'neh-critical';
+    }
+
+    // ========== MARKET INDEXES AUTO-REFRESH ==========
+
+    startMarketIndexesAutoRefresh() {
+        // Store initial values for comparison
+        this.previousMarketIndexes = this.deepClone(this.marketIndexes);
+
+        // Start interval
+        this.marketIndexesRefreshInterval = setInterval(() => {
+            this.refreshMarketIndexes();
+        }, this.MARKET_INDEXES_REFRESH_MS);
+
+        console.log(`[KTI] Market indexes auto-refresh started (every ${this.MARKET_INDEXES_REFRESH_MS / 1000 / 60} minutes)`);
+    }
+
+    stopMarketIndexesAutoRefresh() {
+        if (this.marketIndexesRefreshInterval) {
+            clearInterval(this.marketIndexesRefreshInterval);
+            this.marketIndexesRefreshInterval = null;
+            console.log('[KTI] Market indexes auto-refresh stopped');
+        }
+    }
+
+    async refreshMarketIndexes() {
+        try {
+            console.log('[KTI] Refreshing market indexes...');
+            const newData = await API.fetchMarketIndexes();
+
+            if (!newData) {
+                console.warn('[KTI] No data received from market indexes API');
+                return;
+            }
+
+            // Compare and update each indicator independently
+            this.compareAndUpdateFearGreed(newData.fearGreedIndex);
+            this.compareAndUpdateDefcon(newData.pentagonPizzaIndex);
+            this.compareAndUpdateNEH(newData.nothingEverHappensIndex);
+
+            // Update stored data
+            this.marketIndexes = newData;
+            this.previousMarketIndexes = this.deepClone(newData);
+
+            console.log('[KTI] Market indexes refresh complete');
+        } catch (error) {
+            console.error('[KTI] Error refreshing market indexes:', error);
+        }
+    }
+
+    compareAndUpdateFearGreed(newData) {
+        const prevData = this.previousMarketIndexes?.fearGreedIndex;
+
+        // Compare Stock F&G
+        const prevStockValue = prevData?.markets?.stock?.value;
+        const newStockValue = newData?.markets?.stock?.value;
+        const stockChanged = prevStockValue !== newStockValue;
+
+        // Compare Crypto F&G
+        const prevCryptoValue = prevData?.markets?.crypto?.value;
+        const newCryptoValue = newData?.markets?.crypto?.value;
+        const cryptoChanged = prevCryptoValue !== newCryptoValue;
+
+        // Compare Divergence
+        const prevDivergent = prevData?.divergence?.isDivergent;
+        const newDivergent = newData?.divergence?.isDivergent;
+        const divergenceChanged = prevDivergent !== newDivergent;
+
+        if (stockChanged) {
+            console.log(`[KTI] Stock F&G changed: ${prevStockValue} → ${newStockValue}`);
+            this.updateFearGreedStock(newData.markets.stock);
+        }
+
+        if (cryptoChanged) {
+            console.log(`[KTI] Crypto F&G changed: ${prevCryptoValue} → ${newCryptoValue}`);
+            this.updateFearGreedCrypto(newData.markets.crypto);
+        }
+
+        if (divergenceChanged || (newDivergent && stockChanged) || (newDivergent && cryptoChanged)) {
+            console.log(`[KTI] F&G Divergence changed: ${prevDivergent} → ${newDivergent}`);
+            this.updateFearGreedDivergence(newData.divergence);
+        }
+    }
+
+    compareAndUpdateDefcon(newData) {
+        const prevData = this.previousMarketIndexes?.pentagonPizzaIndex;
+
+        // Compare DOUGHCON/DEFCON level
+        const prevDoughcon = prevData?.doughconLevel;
+        const newDoughcon = newData?.doughconLevel;
+        const prevDefcon = prevData?.defconLevel;
+        const newDefcon = newData?.defconLevel;
+
+        // Compare status
+        const prevStatus = prevData?.status;
+        const newStatus = newData?.status;
+
+        // Compare risk classification
+        const prevRisk = prevData?.riskClassification;
+        const newRisk = newData?.riskClassification;
+
+        const levelChanged = prevDoughcon !== newDoughcon || prevDefcon !== newDefcon;
+        const statusChanged = prevStatus !== newStatus;
+        const riskChanged = prevRisk !== newRisk;
+
+        if (levelChanged || statusChanged || riskChanged) {
+            console.log(`[KTI] DEFCON/DOUGHCON changed - Level: ${prevDoughcon || prevDefcon} → ${newDoughcon || newDefcon}, Status: ${prevStatus} → ${newStatus}`);
+            this.updateDefconDisplay(newData);
+        }
+    }
+
+    compareAndUpdateNEH(newData) {
+        const prevData = this.previousMarketIndexes?.nothingEverHappensIndex;
+
+        // Compare value
+        const prevValue = prevData?.value;
+        const newValue = newData?.value;
+
+        // Compare status
+        const prevStatus = prevData?.status;
+        const newStatus = newData?.status;
+
+        // Compare classification
+        const prevClass = prevData?.classification;
+        const newClass = newData?.classification;
+
+        const valueChanged = prevValue !== newValue;
+        const statusChanged = prevStatus !== newStatus;
+        const classChanged = prevClass !== newClass;
+
+        if (valueChanged || statusChanged || classChanged) {
+            console.log(`[KTI] NEH Index changed - Value: ${prevValue} → ${newValue}, Status: ${prevStatus} → ${newStatus}`);
+            this.updateNEHDisplay(newData);
+        }
+    }
+
+    // Individual update methods for each indicator
+    updateFearGreedStock(stockData) {
+        if (!stockData) return;
+        const fgStockValue = document.getElementById('fg-stock-value');
+        const fgStockStatus = document.getElementById('fg-stock-status');
+
+        if (fgStockValue) {
+            fgStockValue.textContent = stockData.value || '--';
+            fgStockValue.className = `fg-market-value ${this.getFearGreedClass(stockData.value)}`;
+            this.flashElement(fgStockValue);
+        }
+        if (fgStockStatus) {
+            fgStockStatus.textContent = stockData.label || '';
+            fgStockStatus.className = `fg-market-status ${this.getFearGreedClass(stockData.value)}`;
+        }
+    }
+
+    updateFearGreedCrypto(cryptoData) {
+        if (!cryptoData) return;
+        const fgCryptoValue = document.getElementById('fg-crypto-value');
+        const fgCryptoStatus = document.getElementById('fg-crypto-status');
+
+        if (fgCryptoValue) {
+            fgCryptoValue.textContent = cryptoData.value || '--';
+            fgCryptoValue.className = `fg-market-value ${this.getFearGreedClass(cryptoData.value)}`;
+            this.flashElement(fgCryptoValue);
+        }
+        if (fgCryptoStatus) {
+            fgCryptoStatus.textContent = cryptoData.label || '';
+            fgCryptoStatus.className = `fg-market-status ${this.getFearGreedClass(cryptoData.value)}`;
+        }
+    }
+
+    updateFearGreedDivergence(divergenceData) {
+        const divergenceEl = document.getElementById('fg-divergence');
+        const divergenceText = document.getElementById('fg-divergence-text');
+
+        if (divergenceEl && divergenceText) {
+            if (divergenceData?.isDivergent) {
+                divergenceEl.style.display = 'flex';
+                const diff = divergenceData.divergence;
+                divergenceText.textContent = `Divergencia: ${diff} pts entre Stock y Crypto`;
+            } else {
+                divergenceEl.style.display = 'none';
+            }
+        }
+    }
+
+    updateDefconDisplay(defconData) {
+        if (!defconData) return;
+
+        const isDoughcon = defconData.doughconLevel !== null && defconData.doughconLevel !== undefined;
+        const level = isDoughcon ? defconData.doughconLevel : (defconData.defconLevel || '--');
+        const levelType = isDoughcon ? 'DOUGHCON' : 'DEFCON';
+
+        const defconValue = document.getElementById('defcon-value');
+        const defconCircle = document.getElementById('defcon-circle');
+        const defconStatus = document.getElementById('defcon-status');
+        const defconRisk = document.getElementById('defcon-risk');
+
+        if (defconValue) {
+            defconValue.textContent = level;
+            this.flashElement(defconValue);
+        }
+        if (defconCircle) defconCircle.className = `defcon-level-circle defcon-${level}`;
+        if (defconStatus) {
+            defconStatus.textContent = defconData.status || 'UNKNOWN';
+            defconStatus.className = `defcon-badge status-${(defconData.status || '').toLowerCase()}`;
+        }
+        if (defconRisk) {
+            const riskText = isDoughcon && defconData.doughconLevelName
+                ? defconData.doughconLevelName
+                : (defconData.riskClassification || '--');
+            defconRisk.textContent = riskText;
+            defconRisk.className = `defcon-badge risk-${riskText.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-')}`;
+        }
+
+        // Update modal
+        this.updateDefconModal(defconData, level, levelType);
+    }
+
+    updateNEHDisplay(nehData) {
+        if (!nehData) return;
+
+        const nehValue = document.getElementById('neh-value');
+        const nehCircle = document.getElementById('neh-circle');
+        const nehStatus = document.getElementById('neh-status');
+        const nehClassification = document.getElementById('neh-classification');
+
+        if (nehValue) {
+            nehValue.textContent = nehData.value || '--';
+            this.flashElement(nehValue);
+        }
+        if (nehCircle) nehCircle.className = `neh-value-circle ${this.getNehClass(nehData.value)}`;
+        if (nehStatus) {
+            nehStatus.textContent = nehData.status || 'UNKNOWN';
+            nehStatus.className = `neh-badge status-${(nehData.classification || '').toLowerCase()}`;
+        }
+        if (nehClassification) {
+            nehClassification.textContent = nehData.classification || '--';
+            nehClassification.className = `neh-badge classification-${(nehData.classification || '').toLowerCase()}`;
+        }
+    }
+
+    // Utility method to flash element when value changes
+    flashElement(element) {
+        if (!element) return;
+        element.classList.remove('value-changed');
+        void element.offsetWidth; // Force reflow
+        element.classList.add('value-changed');
+        setTimeout(() => element.classList.remove('value-changed'), 1500);
+    }
+
+    // Deep clone utility for comparing objects
+    deepClone(obj) {
+        if (obj === null || obj === undefined) return obj;
+        return JSON.parse(JSON.stringify(obj));
+    }
+
+    // ========== INFO MODAL ==========
+
+    getInfoContent() {
+        return {
+            'fear-greed': {
+                title: 'Índice Miedo y Codicia',
+                icon: 'gauge',
+                description: 'Mide el sentimiento general del mercado en una escala de 0 a 100. Este indicador combina varios factores como volatilidad, volumen, momentum y redes sociales para determinar si los inversores están actuando con miedo o codicia.',
+                scale: [
+                    { color: '#ef4444', label: '0-25: Miedo Extremo', desc: 'Posible oportunidad de compra' },
+                    { color: '#f97316', label: '26-45: Miedo', desc: 'Mercado pesimista' },
+                    { color: '#eab308', label: '46-55: Neutral', desc: 'Equilibrio' },
+                    { color: '#84cc16', label: '56-75: Codicia', desc: 'Mercado optimista' },
+                    { color: '#22c55e', label: '76-100: Codicia Extrema', desc: 'Posible señal de venta' }
+                ]
+            },
+            'geopolitical': {
+                title: 'Índice Geopolítico',
+                icon: 'shield-alert',
+                description: 'Basado en el sistema DOUGHCON/DEFCON, monitorea actividad inusual en ubicaciones estratégicas globales (embajadas, bases militares, centros de gobierno). Útil para anticipar volatilidad causada por eventos geopolíticos.',
+                scale: [
+                    { color: '#22c55e', label: 'Nivel 5 (CHILL)', desc: 'Bajo riesgo, operaciones normales' },
+                    { color: '#84cc16', label: 'Nivel 4 (GUARDED)', desc: 'Vigilancia incrementada' },
+                    { color: '#eab308', label: 'Nivel 3 (ELEVATED)', desc: 'Alerta elevada' },
+                    { color: '#f97316', label: 'Nivel 2 (DOUBLE TAKE)', desc: 'Alta vigilancia' },
+                    { color: '#ef4444', label: 'Nivel 1 (MAXIMUM)', desc: 'Riesgo crítico' }
+                ]
+            },
+            'black-swan': {
+                title: 'Índice Cisne Negro',
+                icon: 'eye',
+                description: '"Nothing Ever Happens" - Mide la probabilidad de eventos inesperados de alto impacto (Cisnes Negros). Combina señales de inteligencia, patrones anómalos en datos globales y correlaciones inusuales entre mercados.',
+                scale: [
+                    { color: '#22c55e', label: '0-25: Calma', desc: 'Sin señales de alerta' },
+                    { color: '#eab308', label: '26-50: Atención', desc: 'Algunas anomalías detectadas' },
+                    { color: '#f97316', label: '51-75: Activo', desc: 'Múltiples señales de alerta' },
+                    { color: '#ef4444', label: '76-100: Crítico', desc: 'Alto riesgo de evento significativo' }
+                ]
+            }
+        };
+    }
+
+    showInfoModal(infoType) {
+        const content = this.getInfoContent()[infoType];
+        if (!content) return;
+
+        const modal = document.getElementById('info-modal');
+        const titleEl = document.getElementById('info-modal-title');
+        const bodyEl = document.getElementById('info-modal-body');
+        const iconEl = document.getElementById('info-modal-icon');
+
+        // Update title
+        if (titleEl) titleEl.textContent = content.title;
+
+        // Update icon
+        if (iconEl) {
+            iconEl.innerHTML = `<i data-lucide="${content.icon}" style="width:20px;height:20px;"></i>`;
+            if (window.refreshLucideIcons) window.refreshLucideIcons();
+        }
+
+        // Build body content
+        let bodyHTML = `<p>${content.description}</p>`;
+
+        if (content.scale && content.scale.length > 0) {
+            bodyHTML += `
+                <div class="info-scale">
+                    <div class="info-scale-title">Escala de valores:</div>
+                    ${content.scale.map(item => `
+                        <div class="info-scale-item">
+                            <span class="dot" style="background-color: ${item.color};"></span>
+                            <span><strong>${item.label}</strong> - ${item.desc}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        if (bodyEl) bodyEl.innerHTML = bodyHTML;
+
+        // Show modal
+        if (modal) modal.classList.add('visible');
+    }
+
+    closeInfoModal() {
+        const modal = document.getElementById('info-modal');
+        if (modal) modal.classList.remove('visible');
+    }
+
+    updateDefconModal(data, level, levelType = 'DEFCON') {
         const geoContext = data.geopoliticalContext || {};
+        const isDoughcon = levelType === 'DOUGHCON';
 
         // Level circle
         const modalCircle = document.getElementById('modal-defcon-circle');
         const modalValue = document.getElementById('modal-defcon-value');
+        const modalTitle = document.getElementById('modal-defcon-title');
+
         if (modalCircle) {
             modalCircle.className = `defcon-level-large defcon-${level}`;
         }
         if (modalValue) {
             modalValue.textContent = level;
         }
+        if (modalTitle) {
+            modalTitle.textContent = `${levelType} ${level}`;
+        }
 
-        // Status
+        // Status - show operational status
         const modalStatus = document.getElementById('modal-defcon-status');
         if (modalStatus) {
             modalStatus.textContent = data.status || '--';
         }
 
-        // Risk Classification
+        // Risk Classification - for DOUGHCON show level name
         const modalRisk = document.getElementById('modal-defcon-risk');
         if (modalRisk) {
-            modalRisk.textContent = data.riskClassification || '--';
+            const riskText = isDoughcon && data.doughconLevelName
+                ? data.doughconLevelName
+                : (data.riskClassification || '--');
+            modalRisk.textContent = riskText;
+        }
+
+        // DOUGHCON Description
+        const modalDesc = document.getElementById('modal-defcon-description');
+        if (modalDesc && isDoughcon && data.doughconDescription) {
+            modalDesc.textContent = data.doughconDescription;
+            modalDesc.style.display = 'block';
+        } else if (modalDesc) {
+            modalDesc.style.display = 'none';
         }
 
         // Geopolitical Risk Level
@@ -554,6 +957,27 @@ class DashboardApp {
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) this.closeModal();
             });
+        });
+
+        // Info modal - card info icons
+        document.querySelectorAll('.card-info-icon').forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const infoType = icon.dataset.infoType;
+                this.showInfoModal(infoType);
+            });
+        });
+
+        // Info modal - close button
+        document.getElementById('btn-close-info')?.addEventListener('click', () => {
+            this.closeInfoModal();
+        });
+
+        // Info modal - overlay click to close
+        document.getElementById('info-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'info-modal') {
+                this.closeInfoModal();
+            }
         });
 
         // Add to watchlist button

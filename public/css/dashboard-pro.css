@@ -55,6 +55,180 @@
   box-sizing: border-box;
 }
 
+/* ========== VALUE CHANGE ANIMATION ========== */
+
+@keyframes valueFlash {
+  0% {
+    background-color: rgba(59, 130, 246, 0.4);
+    transform: scale(1.05);
+  }
+  50% {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+.value-changed {
+  animation: valueFlash 1.5s ease-out;
+  border-radius: 4px;
+}
+
+/* ========== INFO ICON (opens modal) ========== */
+
+.card-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--pro-text-muted);
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+}
+
+.card-info-icon:hover {
+  opacity: 1;
+  color: var(--pro-accent);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.card-info-icon:active {
+  transform: scale(0.95);
+}
+
+/* ========== INFO MODAL ========== */
+
+.info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  padding: 20px;
+}
+
+.info-modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.info-modal {
+  background: var(--pro-bg-secondary);
+  border: 1px solid var(--pro-border-highlight);
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.2s ease;
+}
+
+.info-modal-overlay.visible .info-modal {
+  transform: scale(1) translateY(0);
+}
+
+.info-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--pro-border);
+}
+
+.info-modal-header .modal-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--pro-accent);
+}
+
+.info-modal-header .modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pro-text-primary);
+}
+
+.info-modal-body {
+  padding: 20px;
+}
+
+.info-modal-body p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--pro-text-secondary);
+  margin: 0;
+}
+
+.info-modal-body .info-scale {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--pro-bg-tertiary);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.info-modal-body .info-scale-title {
+  font-weight: 600;
+  color: var(--pro-text-primary);
+  margin-bottom: 8px;
+}
+
+.info-modal-body .info-scale-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  color: var(--pro-text-secondary);
+}
+
+.info-modal-body .info-scale-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.info-modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--pro-border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.info-modal-footer .btn-close-info {
+  padding: 8px 20px;
+  background: var(--pro-accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.info-modal-footer .btn-close-info:hover {
+  background: var(--pro-accent-secondary);
+}
+
+.info-modal-footer .btn-close-info:active {
+  transform: scale(0.98);
+}
+
 /* ========== MAIN LAYOUT ========== */
 
 .dashboard-grid {
@@ -1513,6 +1687,117 @@
   font-size: 0.625rem;
   color: var(--color-warning);
   font-weight: 500;
+}
+
+/* ========== NEH INDEX CARD ========== */
+.summary-card-neh {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.05) 0%, rgba(75, 0, 130, 0.08) 100%);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.neh-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.neh-value-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(138, 43, 226, 0.1);
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  transition: all 0.3s ease;
+}
+
+.neh-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #8a2be2;
+}
+
+/* NEH Level Colors */
+.neh-value-circle.neh-calm {
+  background: rgba(0, 210, 106, 0.1);
+  border-color: rgba(0, 210, 106, 0.3);
+}
+.neh-value-circle.neh-calm .neh-number { color: var(--color-bullish); }
+
+.neh-value-circle.neh-alert {
+  background: rgba(255, 166, 0, 0.1);
+  border-color: rgba(255, 166, 0, 0.3);
+}
+.neh-value-circle.neh-alert .neh-number { color: var(--color-warning); }
+
+.neh-value-circle.neh-active {
+  background: rgba(230, 126, 34, 0.1);
+  border-color: rgba(230, 126, 34, 0.3);
+}
+.neh-value-circle.neh-active .neh-number { color: #e67e22; }
+
+.neh-value-circle.neh-critical {
+  background: rgba(255, 59, 59, 0.1);
+  border-color: rgba(255, 59, 59, 0.3);
+}
+.neh-value-circle.neh-critical .neh-number { color: var(--color-bearish); }
+
+.neh-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.neh-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.neh-label {
+  font-size: 0.6875rem;
+  color: var(--pro-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.neh-badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  background: rgba(138, 43, 226, 0.15);
+  color: #8a2be2;
+}
+
+.neh-badge.status-calm,
+.neh-badge.classification-calm {
+  background: rgba(0, 210, 106, 0.15);
+  color: var(--color-bullish);
+}
+
+.neh-badge.status-alert,
+.neh-badge.classification-alert {
+  background: rgba(255, 166, 0, 0.15);
+  color: var(--color-warning);
+}
+
+.neh-badge.status-active,
+.neh-badge.classification-active {
+  background: rgba(230, 126, 34, 0.15);
+  color: #e67e22;
+}
+
+.neh-badge.status-critical,
+.neh-badge.classification-critical {
+  background: rgba(255, 59, 59, 0.15);
+  color: var(--color-bearish);
 }
 
 /* Quotes Container */

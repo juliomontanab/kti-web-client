@@ -78,7 +78,10 @@
                 <div class="summary-card summary-card-fg" id="fear-greed-card">
                   <div class="card-header">
                     <span class="card-icon"><i data-lucide="gauge" style="width:20px;height:20px;"></i></span>
-                    <span class="card-title">Fear & Greed Index</span>
+                    <span class="card-title">Índice Miedo y Codicia</span>
+                    <span class="card-info-icon" data-info-type="fear-greed">
+                      <i data-lucide="info" style="width:14px;height:14px;"></i>
+                    </span>
                   </div>
                   <div class="fg-markets">
                     <div class="fg-market" id="fg-stock">
@@ -97,11 +100,14 @@
                     <span class="divergence-text" id="fg-divergence-text"></span>
                   </div>
                 </div>
-                <!-- DEFCON Card -->
+                <!-- DEFCON/DOUGHCON Card -->
                 <div class="summary-card summary-card-defcon" id="defcon-card">
                   <div class="card-header">
                     <span class="card-icon"><i data-lucide="shield-alert" style="width:20px;height:20px;"></i></span>
-                    <span class="card-title">DEFCON Index</span>
+                    <span class="card-title">Índice Geopolítico</span>
+                    <span class="card-info-icon" data-info-type="geopolitical">
+                      <i data-lucide="info" style="width:14px;height:14px;"></i>
+                    </span>
                   </div>
                   <div class="defcon-display">
                     <div class="defcon-level-circle" id="defcon-circle">
@@ -121,6 +127,31 @@
                   <div class="defcon-anomaly" id="defcon-anomaly" style="display: none;">
                     <span class="anomaly-icon"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#ef4444;"></i></span>
                     <span class="anomaly-text">Anomalía detectada</span>
+                  </div>
+                </div>
+                <!-- NEH Index Card -->
+                <div class="summary-card summary-card-neh" id="neh-card">
+                  <div class="card-header">
+                    <span class="card-icon"><i data-lucide="eye" style="width:20px;height:20px;"></i></span>
+                    <span class="card-title">Índice Cisne Negro</span>
+                    <span class="card-info-icon" data-info-type="black-swan">
+                      <i data-lucide="info" style="width:14px;height:14px;"></i>
+                    </span>
+                  </div>
+                  <div class="neh-display">
+                    <div class="neh-value-circle" id="neh-circle">
+                      <span class="neh-number" id="neh-value">--</span>
+                    </div>
+                    <div class="neh-info">
+                      <div class="neh-row">
+                        <span class="neh-label">Estado</span>
+                        <span class="neh-badge" id="neh-status">--</span>
+                      </div>
+                      <div class="neh-row">
+                        <span class="neh-label">Nivel</span>
+                        <span class="neh-badge" id="neh-classification">--</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -356,6 +387,24 @@
               <span class="shortcut-desc">Close modal/panel</span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Index Info -->
+    <div class="info-modal-overlay" id="info-modal">
+      <div class="info-modal">
+        <div class="info-modal-header">
+          <div class="modal-icon" id="info-modal-icon">
+            <i data-lucide="info" style="width:20px;height:20px;"></i>
+          </div>
+          <span class="modal-title" id="info-modal-title">Información</span>
+        </div>
+        <div class="info-modal-body" id="info-modal-body">
+          <!-- Content will be dynamically inserted -->
+        </div>
+        <div class="info-modal-footer">
+          <button class="btn-close-info" id="btn-close-info">Entendido</button>
         </div>
       </div>
     </div>
